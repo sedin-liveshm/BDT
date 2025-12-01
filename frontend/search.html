@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YtLearner Search</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .search-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+        input[type="text"] {
+            padding: 10px;
+            font-size: 16px;
+            width: 300px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #ff0000;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #cc0000;
+        }
+        #results {
+            list-style-type: none;
+            padding: 0;
+        }
+        .video-item {
+            display: flex;
+            gap: 15px;
+            background: white;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .video-item img {
+            width: 160px;
+            height: 90px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+        .video-info {
+            flex: 1;
+        }
+        .video-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin: 0 0 5px 0;
+            color: #333;
+        }
+        .video-channel {
+            color: #666;
+            margin: 0 0 5px 0;
+        }
+        .video-duration {
+            color: #888;
+            font-size: 14px;
+        }
+        .error {
+            color: red;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>YouTube Search</h1>
+
+    <div class="search-container">
+        <input type="text" id="searchInput" placeholder="Search for videos...">
+        <button onclick="searchVideos()">Search</button>
+    </div>
+
+    <ul id="results"></ul>
+
+    <script>
+        async function searchVideos() {
+            const query = document.getElementById('searchInput').value;
+            const resultsList = document.getElementById('results');
+            resultsList.innerHTML = '<p style="text-align:center">Loading...</p>';
+
+            if (!query) {
+                resultsList.innerHTML = '<p class="error">Please enter a search term.</p>';
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://127.0.0.1:8000/api/search?q=${encodeURIComponent(query)}&maxResults=10`);
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Failed to fetch results');
+                }
+
+                const videos = await response.json();
+                resultsList.innerHTML = '';
+
+                if (videos.length === 0) {
+                    resultsList.innerHTML = '<p style="text-align:center">No results found.</p>';
+                    return;
+                }
+
+                videos.forEach(video => {
+                    const li = document.createElement('li');
+                    li.className = 'video-item';
+                    
+                    // Format duration
+                    const minutes = Math.floor(video.durationSeconds / 60);
+                    const seconds = video.durationSeconds % 60;
+                    const durationStr = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+                    li.innerHTML = `
+                        <img src="${video.thumbnailUrl}" alt="${video.title}">
+                        <div class="video-info">
+                            <h3 class="video-title">${video.title}</h3>
+                            <p class="video-channel">${video.channelTitle}</p>
+                            <p class="video-duration">Duration: ${durationStr}</p>
+                        </div>
+                    `;
+                    resultsList.appendChild(li);
+                });
+
+            } catch (error) {
+                console.error('Error:', error);
+                resultsList.innerHTML = `<p class="error">Error: ${error.message}</p>`;
+            }
+        }
+        
+        // Allow Enter key to trigger search
+        document.getElementById('searchInput').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                searchVideos();
+            }
+        });
+    </script>
+
+</body>
+</html>

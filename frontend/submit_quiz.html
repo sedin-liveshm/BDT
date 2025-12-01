@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submit Quiz - YtLearner</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .quiz-info {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-radius: 5px;
+        }
+
+        .quiz-info p {
+            margin: 8px 0;
+            color: #333;
+        }
+
+        .quiz-info strong {
+            color: #667eea;
+        }
+
+        .question {
+            background: #f8f9fa;
+            padding: 25px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .question-number {
+            font-weight: bold;
+            color: #667eea;
+            font-size: 1.1em;
+        }
+
+        .question-type {
+            background: #667eea;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.85em;
+            font-weight: 500;
+        }
+
+        .question-type.short {
+            background: #764ba2;
+        }
+
+        .question-text {
+            font-size: 1.1em;
+            margin-bottom: 20px;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .points-badge {
+            background: #28a745;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.9em;
+            margin-left: 10px;
+        }
+
+        .options {
+            margin-left: 20px;
+        }
+
+        .option {
+            padding: 12px;
+            margin: 10px 0;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: white;
+        }
+
+        .option:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .option.selected {
+            border-color: #667eea;
+            background: #e7eaff;
+            font-weight: 500;
+        }
+
+        .option input[type="radio"] {
+            margin-right: 10px;
+            cursor: pointer;
+        }
+
+        .short-answer-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 1em;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 100px;
+            transition: border-color 0.3s;
+        }
+
+        .short-answer-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.1em;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 20px;
+            width: 100%;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #667eea;
+            font-size: 1.2em;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #f5c6cb;
+            margin-bottom: 20px;
+        }
+
+        .report {
+            margin-top: 30px;
+        }
+
+        .score-card {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .score-value {
+            font-size: 4em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .score-label {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .report-section {
+            background: #f8f9fa;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .report-section h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .report-section ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .report-section li {
+            padding: 10px 0;
+            border-bottom: 1px solid #dee2e6;
+            color: #333;
+        }
+
+        .report-section li:last-child {
+            border-bottom: none;
+        }
+
+        .report-section li::before {
+            content: "✓ ";
+            color: #28a745;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+
+        .report-section.weaknesses li::before {
+            content: "⚠ ";
+            color: #ffc107;
+        }
+
+        .question-feedback {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border: 2px solid #dee2e6;
+        }
+
+        .feedback-correct {
+            border-color: #28a745;
+            background: #f0fff4;
+        }
+
+        .feedback-partial {
+            border-color: #ffc107;
+            background: #fffbf0;
+        }
+
+        .feedback-incorrect {
+            border-color: #dc3545;
+            background: #fff0f0;
+        }
+
+        .exercise-card {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+        }
+
+        .exercise-card strong {
+            color: #667eea;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .back-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1em;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 20px;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+
+        .back-btn:hover {
+            background: #5a6268;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📝 Quiz Submission</h1>
+            <p>Answer the questions and submit to get your personalized learning report</p>
+        </div>
+        
+        <div class="content">
+            <div id="loading" class="loading">
+                Loading quiz...
+            </div>
+
+            <div id="error" class="error" style="display: none;"></div>
+
+            <div id="quiz-container" style="display: none;">
+                <div class="quiz-info">
+                    <p><strong>Video ID:</strong> <span id="video-id"></span></p>
+                    <p><strong>Total Questions:</strong> <span id="total-questions"></span></p>
+                    <p><strong>Total Points:</strong> <span id="total-points"></span></p>
+                </div>
+
+                <form id="quiz-form">
+                    <div id="questions-container"></div>
+                    <button type="submit" class="submit-btn" id="submit-btn">Submit Quiz</button>
+                </form>
+            </div>
+
+            <div id="report-container" style="display: none;">
+                <div class="score-card">
+                    <div class="score-label">Your Score</div>
+                    <div class="score-value" id="score-value">0%</div>
+                    <div class="score-label" id="score-points">0/0 points</div>
+                </div>
+
+                <div class="report-section">
+                    <h3>📊 Question Results</h3>
+                    <div id="question-feedbacks"></div>
+                </div>
+
+                <div class="report-section">
+                    <h3>💪 Strengths</h3>
+                    <ul id="strengths-list"></ul>
+                </div>
+
+                <div class="report-section weaknesses">
+                    <h3>📈 Areas for Improvement</h3>
+                    <ul id="weaknesses-list"></ul>
+                </div>
+
+                <div class="report-section">
+                    <h3>💡 Detailed Feedback</h3>
+                    <ul id="feedback-list"></ul>
+                </div>
+
+                <div class="report-section">
+                    <h3>🎯 Recommended Exercises</h3>
+                    <div id="exercises-list"></div>
+                </div>
+
+                <button class="back-btn" onclick="location.reload()">Take Another Quiz</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://127.0.0.1:8000/api';
+        let currentQuiz = null;
+        let quizId = null;
+
+        // Get quizId from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        quizId = urlParams.get('quizId');
+
+        // Check if we have a result in sessionStorage (redirected from quiz.html)
+        const storedResult = sessionStorage.getItem('quizResult');
+        const storedQuizData = sessionStorage.getItem('quizData');
+
+        if (storedResult && storedQuizData) {
+            // We have the result already, display it directly
+            document.getElementById('loading').style.display = 'none';
+            currentQuiz = JSON.parse(storedQuizData);
+            const result = JSON.parse(storedResult);
+            displayReport(result);
+            
+            // Clear sessionStorage
+            sessionStorage.removeItem('quizResult');
+            sessionStorage.removeItem('quizData');
+        } else if (!quizId) {
+            showError('No quiz ID provided. Please generate a quiz first.');
+        } else {
+            // Load quiz for manual submission (legacy behavior)
+            loadQuiz(quizId);
+        }
+
+        async function loadQuiz(id) {
+            try {
+                // Note: In a real app, you'd need an endpoint to fetch quiz by ID
+                // For now, we'll use the video ID pattern (quizId might be videoId_timestamp)
+                const videoId = id.split('_')[0];
+                
+                const response = await fetch(`${API_BASE}/video/${videoId}/quiz`);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                
+                const data = await response.json();
+                currentQuiz = data;
+                
+                displayQuiz(data);
+            } catch (error) {
+                showError(`Failed to load quiz: ${error.message}`);
+            }
+        }
+
+        function displayQuiz(quiz) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('quiz-container').style.display = 'block';
+
+            document.getElementById('video-id').textContent = quiz.videoId || 'Unknown';
+            document.getElementById('total-questions').textContent = quiz.questions.length;
+            
+            const totalPoints = quiz.questions.reduce((sum, q) => sum + q.points, 0);
+            document.getElementById('total-points').textContent = totalPoints;
+
+            const questionsContainer = document.getElementById('questions-container');
+            questionsContainer.innerHTML = '';
+
+            quiz.questions.forEach((question, index) => {
+                const questionDiv = document.createElement('div');
+                questionDiv.className = 'question';
+                questionDiv.innerHTML = `
+                    <div class="question-header">
+                        <span class="question-number">Question ${index + 1}</span>
+                        <div>
+                            <span class="question-type ${question.type === 'short' ? 'short' : ''}">${question.type === 'mcq' ? 'Multiple Choice' : 'Short Answer'}</span>
+                            <span class="points-badge">${question.points} pts</span>
+                        </div>
+                    </div>
+                    <div class="question-text">${question.question}</div>
+                    ${renderQuestionInput(question, index)}
+                `;
+                questionsContainer.appendChild(questionDiv);
+            });
+
+            // Add option click handlers for MCQs
+            document.querySelectorAll('.option').forEach(option => {
+                option.addEventListener('click', function() {
+                    const radio = this.querySelector('input[type="radio"]');
+                    radio.checked = true;
+                    
+                    // Remove selected class from siblings
+                    this.parentElement.querySelectorAll('.option').forEach(opt => {
+                        opt.classList.remove('selected');
+                    });
+                    
+                    // Add selected class to this option
+                    this.classList.add('selected');
+                });
+            });
+        }
+
+        function renderQuestionInput(question, index) {
+            if (question.type === 'mcq') {
+                return `
+                    <div class="options">
+                        ${question.options.map((option, optIndex) => `
+                            <label class="option">
+                                <input type="radio" name="q${index}" value="${optIndex}" required>
+                                ${option}
+                            </label>
+                        `).join('')}
+                    </div>
+                `;
+            } else {
+                return `
+                    <textarea 
+                        class="short-answer-input" 
+                        name="q${index}" 
+                        placeholder="Enter your answer here..."
+                        required
+                    ></textarea>
+                `;
+            }
+        }
+
+        document.getElementById('quiz-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submit-btn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+
+            try {
+                const answers = [];
+                currentQuiz.questions.forEach((question, index) => {
+                    const input = document.querySelector(`[name="q${index}"]`);
+                    let answer;
+                    
+                    if (question.type === 'mcq') {
+                        const selected = document.querySelector(`[name="q${index}"]:checked`);
+                        answer = selected ? parseInt(selected.value) : null;
+                    } else {
+                        answer = input.value.trim();
+                    }
+                    
+                    answers.push({
+                        questionId: index,
+                        answer: answer
+                    });
+                });
+
+                const response = await fetch(`${API_BASE}/quiz/${quizId}/submit`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ answers })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || `HTTP ${response.status}`);
+                }
+
+                const result = await response.json();
+                displayReport(result);
+            } catch (error) {
+                showError(`Failed to submit quiz: ${error.message}`);
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit Quiz';
+            }
+        });
+
+        function displayReport(result) {
+            document.getElementById('quiz-container').style.display = 'none';
+            document.getElementById('report-container').style.display = 'block';
+
+            // Score
+            document.getElementById('score-value').textContent = `${Math.round(result.report.overall_percent)}%`;
+            document.getElementById('score-points').textContent = `${result.attempt.pointsEarned}/${result.attempt.pointsPossible} points`;
+
+            // Question feedbacks
+            const feedbacksContainer = document.getElementById('question-feedbacks');
+            feedbacksContainer.innerHTML = '';
+            result.attempt.questionFeedbacks.forEach(qf => {
+                const status = qf.pointsEarned === qf.maxPoints ? 'correct' : 
+                              qf.pointsEarned > 0 ? 'partial' : 'incorrect';
+                const feedbackDiv = document.createElement('div');
+                feedbackDiv.className = `question-feedback feedback-${status}`;
+                feedbackDiv.innerHTML = `
+                    <strong>Question ${qf.questionId + 1} (${qf.type}):</strong> ${qf.pointsEarned}/${qf.maxPoints} pts<br>
+                    ${qf.feedback}
+                `;
+                feedbacksContainer.appendChild(feedbackDiv);
+            });
+
+            // Strengths
+            const strengthsList = document.getElementById('strengths-list');
+            strengthsList.innerHTML = result.report.strengths.map(s => `<li>${s}</li>`).join('');
+
+            // Weaknesses
+            const weaknessesList = document.getElementById('weaknesses-list');
+            weaknessesList.innerHTML = result.report.weaknesses.map(w => `<li>${w}</li>`).join('');
+
+            // Detailed feedback
+            const feedbackList = document.getElementById('feedback-list');
+            feedbackList.innerHTML = result.report.detailed_feedback.map(f => `<li>${f}</li>`).join('');
+
+            // Exercises
+            const exercisesList = document.getElementById('exercises-list');
+            exercisesList.innerHTML = result.report.micro_exercises.map(ex => `
+                <div class="exercise-card">
+                    <strong>${ex.task}</strong>
+                    <div>${ex.purpose}</div>
+                </div>
+            `).join('');
+        }
+
+        function showError(message) {
+            document.getElementById('loading').style.display = 'none';
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+    </script>
+</body>
+</html>

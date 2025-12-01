@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Summary</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        .input-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+
+        input[type="text"] {
+            padding: 10px;
+            font-size: 16px;
+            width: 300px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #6c63ff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #5a52d5;
+        }
+
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        #summary-display {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+
+        .summary-section {
+            margin-bottom: 25px;
+        }
+
+        .summary-section h2 {
+            color: #6c63ff;
+            font-size: 20px;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #6c63ff;
+            padding-bottom: 5px;
+        }
+
+        .summary-text {
+            color: #333;
+            line-height: 1.6;
+            font-size: 16px;
+        }
+
+        .takeaways-list {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .takeaways-list li {
+            background: #f0f0ff;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-left: 4px solid #6c63ff;
+            border-radius: 4px;
+        }
+
+        .focus-box {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            padding: 15px;
+            border-radius: 4px;
+            font-style: italic;
+            color: #856404;
+        }
+
+        .highlights-list {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .highlights-list li {
+            padding: 8px;
+            margin-bottom: 5px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .timestamp {
+            color: #007bff;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .error {
+            color: red;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .loading {
+            text-align: center;
+            color: #666;
+            font-size: 16px;
+        }
+
+        .meta-info {
+            color: #888;
+            font-size: 12px;
+            margin-top: 20px;
+            text-align: right;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>📝 Video Summary Generator</h1>
+
+    <div class="input-container">
+        <input type="text" id="videoIdInput" placeholder="Enter Video ID (e.g. Ks-_Mh1QhMc)">
+        <button id="generateBtn" onclick="fetchSummary()">Generate Summary</button>
+    </div>
+
+    <div id="summary-display">
+        <div class="summary-section">
+            <h2>📋 Summary</h2>
+            <p class="summary-text" id="summary"></p>
+        </div>
+
+        <div class="summary-section">
+            <h2>💡 Key Takeaways</h2>
+            <ul class="takeaways-list" id="takeaways"></ul>
+        </div>
+
+        <div class="summary-section">
+            <h2>🎯 Focus</h2>
+            <div class="focus-box" id="focus"></div>
+        </div>
+
+        <div class="summary-section">
+            <h2>✨ Highlights</h2>
+            <ul class="highlights-list" id="highlights"></ul>
+        </div>
+
+        <div class="meta-info" id="meta"></div>
+    </div>
+
+    <p id="error-msg" class="error"></p>
+
+    <script>
+        function formatTime(seconds) {
+            const min = Math.floor(seconds / 60);
+            const sec = Math.floor(seconds % 60);
+            return `${min}:${sec.toString().padStart(2, '0')}`;
+        }
+
+        async function fetchSummary() {
+            const videoId = document.getElementById('videoIdInput').value.trim();
+            const display = document.getElementById('summary-display');
+            const errorMsg = document.getElementById('error-msg');
+            const btn = document.getElementById('generateBtn');
+
+            if (!videoId) {
+                errorMsg.textContent = 'Please enter a Video ID.';
+                display.style.display = 'none';
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Generating...';
+            errorMsg.innerHTML = '<p class="loading">⏳ Generating summary... This may take 30-60 seconds.</p>';
+            display.style.display = 'none';
+
+            try {
+                const response = await fetch(`http://127.0.0.1:8000/api/video/${videoId}/summary`);
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Failed to fetch summary');
+                }
+
+                const data = await response.json();
+
+                // Populate summary
+                document.getElementById('summary').textContent = data.summary || 'No summary available.';
+
+                // Populate takeaways
+                const takeawaysList = document.getElementById('takeaways');
+                takeawaysList.innerHTML = '';
+                if (data.takeaways && data.takeaways.length > 0) {
+                    data.takeaways.forEach(takeaway => {
+                        const li = document.createElement('li');
+                        li.textContent = takeaway;
+                        takeawaysList.appendChild(li);
+                    });
+                } else {
+                    takeawaysList.innerHTML = '<li>No takeaways available.</li>';
+                }
+
+                // Populate focus
+                document.getElementById('focus').textContent = data.focus || 'No focus statement available.';
+
+                // Populate highlights
+                const highlightsList = document.getElementById('highlights');
+                highlightsList.innerHTML = '';
+                if (data.highlights && data.highlights.length > 0) {
+                    data.highlights.forEach(highlight => {
+                        const li = document.createElement('li');
+                        const timestamp = highlight.start !== undefined ? formatTime(highlight.start) : '0:00';
+                        li.innerHTML = `<span class="timestamp">${timestamp}</span>${highlight.text}`;
+                        highlightsList.appendChild(li);
+                    });
+                } else {
+                    highlightsList.innerHTML = '<li>No highlights available.</li>';
+                }
+
+                // Meta info
+                const generatedAt = data.generatedAt ? new Date(data.generatedAt).toLocaleString() : 'Unknown';
+                document.getElementById('meta').textContent = `Generated at: ${generatedAt}`;
+
+                display.style.display = 'block';
+                errorMsg.textContent = '';
+
+            } catch (error) {
+                console.error('Error:', error);
+                errorMsg.textContent = `Error: ${error.message}`;
+                display.style.display = 'none';
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Generate Summary';
+            }
+        }
+    </script>
+
+</body>
+
+</html>

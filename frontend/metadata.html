@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Metadata</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        .input-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+
+        input[type="text"] {
+            padding: 10px;
+            font-size: 16px;
+            width: 300px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #metadata-display {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+
+        .meta-header {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .meta-header img {
+            width: 200px;
+            height: auto;
+            border-radius: 4px;
+        }
+
+        .meta-info {
+            flex: 1;
+        }
+
+        .meta-title {
+            font-size: 22px;
+            font-weight: bold;
+            margin: 0 0 10px 0;
+        }
+
+        .meta-channel {
+            color: #666;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .meta-stats {
+            display: flex;
+            gap: 15px;
+            color: #555;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        .stat-item {
+            background: #eee;
+            padding: 5px 10px;
+            border-radius: 15px;
+        }
+
+        .meta-desc {
+            white-space: pre-wrap;
+            color: #333;
+            line-height: 1.5;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+        }
+
+        .error {
+            color: red;
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Video Metadata Lookup</h1>
+
+    <div class="input-container">
+        <input type="text" id="videoIdInput" placeholder="Enter Video ID (e.g. Ks-_Mh1QhMc)">
+        <button onclick="fetchMetadata()">Get Metadata</button>
+    </div>
+
+    <div id="metadata-display">
+        <div class="meta-header">
+            <img id="thumb" src="" alt="Thumbnail">
+            <div class="meta-info">
+                <div class="meta-title" id="title"></div>
+                <div class="meta-channel" id="channel"></div>
+                <div class="meta-stats">
+                    <span class="stat-item" id="views"></span>
+                    <span class="stat-item" id="likes"></span>
+                    <span class="stat-item" id="comments"></span>
+                </div>
+                <div style="margin-top: 10px; color: #888; font-size: 12px;">
+                    Fetched At: <span id="fetchedAt"></span>
+                </div>
+            </div>
+        </div>
+        <div class="meta-desc" id="description"></div>
+    </div>
+
+    <p id="error-msg" class="error"></p>
+
+    <script>
+        async function fetchMetadata() {
+            const videoId = document.getElementById('videoIdInput').value.trim();
+            const display = document.getElementById('metadata-display');
+            const errorMsg = document.getElementById('error-msg');
+
+            if (!videoId) {
+                errorMsg.textContent = 'Please enter a Video ID.';
+                display.style.display = 'none';
+                return;
+            }
+
+            errorMsg.textContent = 'Loading...';
+            display.style.display = 'none';
+
+            try {
+                const response = await fetch(`http://127.0.0.1:8000/api/video/${videoId}/metadata`);
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Failed to fetch metadata');
+                }
+
+                const data = await response.json();
+
+                document.getElementById('thumb').src = data.thumbnailUrl;
+                document.getElementById('title').textContent = data.title;
+                document.getElementById('channel').textContent = data.channelTitle;
+                document.getElementById('description').textContent = data.description;
+                document.getElementById('views').textContent = `👁 ${parseInt(data.statistics.viewCount).toLocaleString()} Views`;
+                document.getElementById('likes').textContent = `👍 ${parseInt(data.statistics.likeCount).toLocaleString()} Likes`;
+                document.getElementById('comments').textContent = `💬 ${parseInt(data.statistics.commentCount).toLocaleString()} Comments`;
+                document.getElementById('fetchedAt').textContent = new Date(data.metadataFetchedAt).toLocaleString();
+
+                display.style.display = 'block';
+                errorMsg.textContent = '';
+
+            } catch (error) {
+                console.error('Error:', error);
+                errorMsg.textContent = `Error: ${error.message}`;
+                display.style.display = 'none';
+            }
+        }
+    </script>
+
+</body>
+
+</html>

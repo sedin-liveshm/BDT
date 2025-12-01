@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Tester - YtLearner</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .config {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .config label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .config input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #dee2e6;
+            border-radius: 5px;
+            font-size: 1em;
+            margin-bottom: 15px;
+        }
+
+        .endpoints {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .endpoint-card {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            transition: all 0.3s;
+        }
+
+        .endpoint-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+        }
+
+        .endpoint-card h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        .endpoint-card p {
+            color: #6c757d;
+            margin-bottom: 15px;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+
+        .endpoint-card .method {
+            display: inline-block;
+            background: #28a745;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 5px;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .endpoint-card .method.post {
+            background: #ffc107;
+        }
+
+        .endpoint-card input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            font-size: 0.9em;
+        }
+
+        .endpoint-card button {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+
+        .endpoint-card button:hover {
+            transform: translateY(-2px);
+        }
+
+        .endpoint-card button:active {
+            transform: translateY(0);
+        }
+
+        .endpoint-card button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .response-section {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .response-section h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .response-box {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .response-box pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 5px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .clear-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+
+        .clear-btn:hover {
+            background: #5a6268;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧪 API Tester</h1>
+            <p>Test all YtLearner API endpoints</p>
+        </div>
+
+        <div class="content">
+            <div class="config">
+                <label for="baseUrl">API Base URL:</label>
+                <input type="text" id="baseUrl" value="http://127.0.0.1:8000" placeholder="http://127.0.0.1:8000">
+                
+                <label for="defaultVideoId">Default Video ID:</label>
+                <input type="text" id="defaultVideoId" value="Ks-_Mh1QhMc" placeholder="Ks-_Mh1QhMc">
+            </div>
+
+            <div class="endpoints">
+                <div class="endpoint-card">
+                    <span class="method">GET</span>
+                    <h3>Health Check</h3>
+                    <p>Verify API is running and get version info</p>
+                    <button onclick="testHealth()">Test Health</button>
+                </div>
+
+                <div class="endpoint-card">
+                    <span class="method">GET</span>
+                    <h3>Search Videos</h3>
+                    <p>Search YouTube for videos</p>
+                    <input type="text" id="searchQuery" placeholder="Search query (e.g., python tutorial)" value="python tutorial">
+                    <input type="number" id="searchMax" placeholder="Max results" value="5" min="1" max="50">
+                    <button onclick="testSearch()">Search</button>
+                </div>
+
+                <div class="endpoint-card">
+                    <span class="method">GET</span>
+                    <h3>Video Metadata</h3>
+                    <p>Get video details, duration, views, etc.</p>
+                    <input type="text" id="metadataVideoId" placeholder="Video ID">
+                    <button onclick="testMetadata()">Get Metadata</button>
+                </div>
+
+                <div class="endpoint-card">
+                    <span class="method">GET</span>
+                    <h3>Video Transcript</h3>
+                    <p>Fetch video transcript/subtitles</p>
+                    <input type="text" id="transcriptVideoId" placeholder="Video ID">
+                    <button onclick="testTranscript()">Get Transcript</button>
+                </div>
+
+                <div class="endpoint-card">
+                    <span class="method">GET</span>
+                    <h3>Video Summary</h3>
+                    <p>Generate AI-powered summary</p>
+                    <input type="text" id="summaryVideoId" placeholder="Video ID">
+                    <button onclick="testSummary()">Generate Summary</button>
+                </div>
+
+                <div class="endpoint-card">
+                    <span class="method">GET</span>
+                    <h3>Generate Quiz</h3>
+                    <p>Create quiz from video content</p>
+                    <input type="text" id="quizVideoId" placeholder="Video ID">
+                    <input type="number" id="numMcq" placeholder="MCQ questions" value="3" min="0" max="10">
+                    <input type="number" id="numShort" placeholder="Short answer questions" value="2" min="0" max="10">
+                    <button onclick="testQuiz()">Generate Quiz</button>
+                </div>
+
+                <div class="endpoint-card">
+                    <span class="method post">POST</span>
+                    <h3>Submit Quiz</h3>
+                    <p>Submit answers for grading</p>
+                    <input type="text" id="submitQuizId" placeholder="Quiz ID from quiz generation">
+                    <button onclick="testSubmit()">Submit (Sample Answers)</button>
+                </div>
+
+                <div class="endpoint-card">
+                    <span class="method">GET</span>
+                    <h3>Export OpenAPI</h3>
+                    <p>Export API specification to file</p>
+                    <button onclick="testExportOpenAPI()">Export OpenAPI</button>
+                </div>
+            </div>
+
+            <div class="response-section">
+                <h2>Response</h2>
+                <div id="responseStatus"></div>
+                <div class="response-box">
+                    <pre id="responseContent">No requests made yet. Click a test button above to see results.</pre>
+                </div>
+                <button class="clear-btn" onclick="clearResponse()">Clear Response</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function getBaseUrl() {
+            return document.getElementById('baseUrl').value.trim();
+        }
+
+        function getDefaultVideoId() {
+            return document.getElementById('defaultVideoId').value.trim();
+        }
+
+        function displayResponse(status, data, error = false) {
+            const statusDiv = document.getElementById('responseStatus');
+            const contentPre = document.getElementById('responseContent');
+            
+            if (error) {
+                statusDiv.innerHTML = `<span class="status-badge status-error">Error: ${status}</span>`;
+                contentPre.textContent = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+            } else {
+                statusDiv.innerHTML = `<span class="status-badge status-success">Status: ${status}</span>`;
+                contentPre.textContent = JSON.stringify(data, null, 2);
+            }
+        }
+
+        function clearResponse() {
+            document.getElementById('responseStatus').innerHTML = '';
+            document.getElementById('responseContent').textContent = 'No requests made yet. Click a test button above to see results.';
+        }
+
+        async function makeRequest(url, options = {}) {
+            try {
+                const response = await fetch(url, options);
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    displayResponse(response.status, data, true);
+                } else {
+                    displayResponse(response.status, data);
+                }
+            } catch (error) {
+                displayResponse('Network Error', error.message, true);
+            }
+        }
+
+        async function testHealth() {
+            const url = `${getBaseUrl()}/`;
+            await makeRequest(url);
+        }
+
+        async function testSearch() {
+            const query = document.getElementById('searchQuery').value.trim();
+            const maxResults = document.getElementById('searchMax').value || 5;
+            const url = `${getBaseUrl()}/api/search?q=${encodeURIComponent(query)}&maxResults=${maxResults}`;
+            await makeRequest(url);
+        }
+
+        async function testMetadata() {
+            const videoId = document.getElementById('metadataVideoId').value.trim() || getDefaultVideoId();
+            const url = `${getBaseUrl()}/api/video/${videoId}/metadata`;
+            await makeRequest(url);
+        }
+
+        async function testTranscript() {
+            const videoId = document.getElementById('transcriptVideoId').value.trim() || getDefaultVideoId();
+            const url = `${getBaseUrl()}/api/video/${videoId}/transcript`;
+            await makeRequest(url);
+        }
+
+        async function testSummary() {
+            const videoId = document.getElementById('summaryVideoId').value.trim() || getDefaultVideoId();
+            const url = `${getBaseUrl()}/api/video/${videoId}/summary`;
+            displayResponse('Loading', 'Generating summary... This may take 30-60 seconds.');
+            await makeRequest(url);
+        }
+
+        async function testQuiz() {
+            const videoId = document.getElementById('quizVideoId').value.trim() || getDefaultVideoId();
+            const numMcq = document.getElementById('numMcq').value || 3;
+            const numShort = document.getElementById('numShort').value || 2;
+            const url = `${getBaseUrl()}/api/video/${videoId}/quiz?num_mcq=${numMcq}&num_short=${numShort}`;
+            displayResponse('Loading', 'Generating quiz... This may take 30-60 seconds.');
+            await makeRequest(url);
+        }
+
+        async function testSubmit() {
+            const quizId = document.getElementById('submitQuizId').value.trim();
+            if (!quizId) {
+                displayResponse('Error', 'Please enter a Quiz ID. Generate a quiz first to get the ID.', true);
+                return;
+            }
+            
+            // Sample answers
+            const payload = {
+                answers: [
+                    { questionId: 0, answer: 1 },
+                    { questionId: 1, answer: 2 },
+                    { questionId: 2, answer: 0 },
+                    { questionId: 3, answer: "The video explains important programming concepts and demonstrates practical examples." },
+                    { questionId: 4, answer: "Key benefits include better code organization, reusability, and maintainability." }
+                ]
+            };
+            
+            const url = `${getBaseUrl()}/api/quiz/${quizId}/submit`;
+            await makeRequest(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+        }
+
+        async function testExportOpenAPI() {
+            const url = `${getBaseUrl()}/export-openapi`;
+            await makeRequest(url);
+        }
+
+        // Auto-fill video IDs with default value
+        window.addEventListener('DOMContentLoaded', () => {
+            const defaultId = getDefaultVideoId();
+            document.getElementById('metadataVideoId').value = defaultId;
+            document.getElementById('transcriptVideoId').value = defaultId;
+            document.getElementById('summaryVideoId').value = defaultId;
+            document.getElementById('quizVideoId').value = defaultId;
+        });
+    </script>
+</body>
+</html>

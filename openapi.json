@@ -1,0 +1,478 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "YtLearner API",
+    "description": "Backend API for YtLearner - YouTube video learning assistant with AI-powered summaries, quizzes, and personalized learning reports",
+    "contact": {
+      "name": "YtLearner Team",
+      "email": "support@ytlearner.example.com"
+    },
+    "license": {
+      "name": "MIT",
+      "url": "https://opensource.org/licenses/MIT"
+    },
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/search": {
+      "get": {
+        "tags": [
+          "search"
+        ],
+        "summary": "Search",
+        "description": "Search for YouTube videos.",
+        "operationId": "search_api_search_get",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Search query",
+              "title": "Q"
+            },
+            "description": "Search query"
+          },
+          {
+            "name": "maxResults",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 50,
+              "minimum": 1,
+              "description": "Maximum number of results",
+              "default": 10,
+              "title": "Maxresults"
+            },
+            "description": "Maximum number of results"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  "title": "Response Search Api Search Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/video/{videoId}/metadata": {
+      "get": {
+        "tags": [
+          "video"
+        ],
+        "summary": "Get Metadata",
+        "description": "Get detailed metadata for a YouTube video.",
+        "operationId": "get_metadata_api_video__videoId__metadata_get",
+        "parameters": [
+          {
+            "name": "videoId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "The ID of the YouTube video",
+              "title": "Videoid"
+            },
+            "description": "The ID of the YouTube video"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Metadata Api Video  Videoid  Metadata Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/video/{videoId}/transcript": {
+      "get": {
+        "tags": [
+          "transcript"
+        ],
+        "summary": "Get Video Transcript",
+        "description": "Get the transcript (captions) for a YouTube video.",
+        "operationId": "get_video_transcript_api_video__videoId__transcript_get",
+        "parameters": [
+          {
+            "name": "videoId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "The ID of the YouTube video",
+              "title": "Videoid"
+            },
+            "description": "The ID of the YouTube video"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Video Transcript Api Video  Videoid  Transcript Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/video/{videoId}/summary": {
+      "get": {
+        "tags": [
+          "summary"
+        ],
+        "summary": "Get Summary",
+        "description": "Get or generate a summary for a YouTube video.",
+        "operationId": "get_summary_api_video__videoId__summary_get",
+        "parameters": [
+          {
+            "name": "videoId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "The ID of the YouTube video",
+              "title": "Videoid"
+            },
+            "description": "The ID of the YouTube video"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Summary Api Video  Videoid  Summary Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/video/{videoId}/quiz": {
+      "get": {
+        "tags": [
+          "quiz"
+        ],
+        "summary": "Get Quiz",
+        "description": "Get or generate a quiz for a YouTube video based on its summary.\nReturns quiz questions without correct answers (server-side only).",
+        "operationId": "get_quiz_api_video__videoId__quiz_get",
+        "parameters": [
+          {
+            "name": "videoId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "The ID of the YouTube video",
+              "title": "Videoid"
+            },
+            "description": "The ID of the YouTube video"
+          },
+          {
+            "name": "num_mcq",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 10,
+              "minimum": 0,
+              "description": "Number of multiple choice questions",
+              "default": 3,
+              "title": "Num Mcq"
+            },
+            "description": "Number of multiple choice questions"
+          },
+          {
+            "name": "num_short",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 10,
+              "minimum": 0,
+              "description": "Number of short answer questions",
+              "default": 2,
+              "title": "Num Short"
+            },
+            "description": "Number of short answer questions"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Quiz Api Video  Videoid  Quiz Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/quiz/{quizId}/submit": {
+      "post": {
+        "tags": [
+          "submit"
+        ],
+        "summary": "Submit Quiz",
+        "description": "Submit quiz answers for grading.\nReturns score, per-question details, and AI-generated report.",
+        "operationId": "submit_quiz_api_quiz__quizId__submit_post",
+        "parameters": [
+          {
+            "name": "quizId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Quizid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuizSubmission"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Submit Quiz Api Quiz  Quizid  Submit Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/": {
+      "get": {
+        "summary": "Root",
+        "operationId": "root__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/export-openapi": {
+      "get": {
+        "summary": "Export Openapi",
+        "description": "Export OpenAPI specification to openapi.json file at project root.\nThis endpoint generates the file and returns confirmation.",
+        "operationId": "export_openapi_export_openapi_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "QuizAnswer": {
+        "properties": {
+          "questionId": {
+            "type": "integer",
+            "title": "Questionid"
+          },
+          "answer": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              }
+            ],
+            "title": "Answer"
+          }
+        },
+        "type": "object",
+        "required": [
+          "questionId",
+          "answer"
+        ],
+        "title": "QuizAnswer"
+      },
+      "QuizSubmission": {
+        "properties": {
+          "answers": {
+            "items": {
+              "$ref": "#/components/schemas/QuizAnswer"
+            },
+            "type": "array",
+            "title": "Answers"
+          }
+        },
+        "type": "object",
+        "required": [
+          "answers"
+        ],
+        "title": "QuizSubmission"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}

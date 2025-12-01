@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YtLearner API Documentation</title>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.10.5/swagger-ui.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+        .topbar {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="swagger-ui"></div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.10.5/swagger-ui-bundle.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.10.5/swagger-ui-standalone-preset.js"></script>
+    <script>
+        window.onload = function() {
+            // Load the OpenAPI spec
+            const spec = {
+                "openapi": "3.1.0",
+                "info": {
+                    "title": "YtLearner API",
+                    "description": "Backend API for YtLearner - YouTube video learning assistant with AI-powered summaries, quizzes, and personalized learning reports",
+                    "contact": {
+                        "name": "YtLearner Team",
+                        "email": "support@ytlearner.example.com"
+                    },
+                    "license": {
+                        "name": "MIT",
+                        "url": "https://opensource.org/licenses/MIT"
+                    },
+                    "version": "1.0.0"
+                },
+                "servers": [
+                    {
+                        "url": "http://127.0.0.1:8000",
+                        "description": "Local development server"
+                    },
+                    {
+                        "url": "https://your-app.onrender.com",
+                        "description": "Production server (update with your deployed URL)"
+                    }
+                ],
+                "paths": {
+                    "/": {
+                        "get": {
+                            "summary": "Health Check",
+                            "description": "Check API health and get basic information",
+                            "tags": ["Health"],
+                            "responses": {
+                                "200": {
+                                    "description": "API information",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "message": {"type": "string"},
+                                                    "version": {"type": "string"},
+                                                    "docs": {"type": "string"},
+                                                    "openapi": {"type": "string"}
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "/api/search": {
+                        "get": {
+                            "tags": ["YouTube"],
+                            "summary": "Search Videos",
+                            "description": "Search for YouTube videos using keywords. Returns video metadata including title, description, thumbnails, and statistics.",
+                            "parameters": [
+                                {
+                                    "name": "q",
+                                    "in": "query",
+                                    "required": true,
+                                    "description": "Search query (e.g., 'python tutorial', 'machine learning')",
+                                    "schema": {
+                                        "type": "string",
+                                        "minLength": 1
+                                    },
+                                    "example": "python tutorial"
+                                },
+                                {
+                                    "name": "maxResults",
+                                    "in": "query",
+                                    "required": false,
+                                    "description": "Maximum number of results to return (1-50)",
+                                    "schema": {
+                                        "type": "integer",
+                                        "minimum": 1,
+                                        "maximum": 50,
+                                        "default": 10
+                                    },
+                                    "example": 5
+                                }
+                            ],
+                            "responses": {
+                                "200": {
+                                    "description": "List of videos matching search query",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "id": {"type": "string"},
+                                                        "title": {"type": "string"},
+                                                        "description": {"type": "string"},
+                                                        "thumbnails": {"type": "object"},
+                                                        "channelTitle": {"type": "string"}
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "/api/video/{videoId}/metadata": {
+                        "get": {
+                            "tags": ["YouTube"],
+                            "summary": "Get Video Metadata",
+                            "description": "Get detailed metadata for a specific YouTube video including title, description, duration, view count, like count, and channel information. Results are cached for 7 days.",
+                            "parameters": [
+                                {
+                                    "name": "videoId",
+                                    "in": "path",
+                                    "required": true,
+                                    "description": "YouTube video ID (e.g., 'Ks-_Mh1QhMc')",
+                                    "schema": {
+                                        "type": "string"
+                                    },
+                                    "example": "Ks-_Mh1QhMc"
+                                }
+                            ],
+                            "responses": {
+                                "200": {
+                                    "description": "Video metadata",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "videoId": {"type": "string"},
+                                                    "title": {"type": "string"},
+                                                    "description": {"type": "string"},
+                                                    "duration": {"type": "string"},
+                                                    "viewCount": {"type": "integer"},
+                                                    "likeCount": {"type": "integer"},
+                                                    "channelTitle": {"type": "string"}
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "/api/video/{videoId}/transcript": {
+                        "get": {
+                            "tags": ["YouTube"],
+                            "summary": "Get Video Transcript",
+                            "description": "Fetch the transcript/subtitles for a YouTube video. Returns timestamped text segments. Requires video to have available captions.",
+                            "parameters": [
+                                {
+                                    "name": "videoId",
+                                    "in": "path",
+                                    "required": true,
+                                    "description": "YouTube video ID",
+                                    "schema": {
+                                        "type": "string"
+                                    },
+                                    "example": "Ks-_Mh1QhMc"
+                                }
+                            ],
+                            "responses": {
+                                "200": {
+                                    "description": "Video transcript with timestamps",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "videoId": {"type": "string"},
+                                                    "transcript": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "text": {"type": "string"},
+                                                                "start": {"type": "number"},
+                                                                "duration": {"type": "number"}
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "/api/video/{videoId}/summary": {
+                        "get": {
+                            "tags": ["AI Features"],
+                            "summary": "Generate Video Summary",
+                            "description": "Generate an AI-powered summary of a YouTube video using Google Gemini. Returns main points, detailed summary, key takeaways, and prerequisites. Cached for 30 days. Falls back to extractive summarization if GEMINI_API_KEY is not set.",
+                            "parameters": [
+                                {
+                                    "name": "videoId",
+                                    "in": "path",
+                                    "required": true,
+                                    "description": "YouTube video ID",
+                                    "schema": {
+                                        "type": "string"
+                                    },
+                                    "example": "Ks-_Mh1QhMc"
+                                }
+                            ],
+                            "responses": {
+                                "200": {
+                                    "description": "AI-generated video summary",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "videoId": {"type": "string"},
+                                                    "summary": {"type": "string"},
+                                                    "mainPoints": {
+                                                        "type": "array",
+                                                        "items": {"type": "string"}
+                                                    },
+                                                    "takeaways": {
+                                                        "type": "array",
+                                                        "items": {"type": "string"}
+                                                    },
+                                                    "prerequisites": {
+                                                        "type": "array",
+                                                        "items": {"type": "string"}
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "/api/video/{videoId}/quiz": {
+                        "get": {
+                            "tags": ["AI Features"],
+                            "summary": "Generate Quiz",
+                            "description": "Generate a quiz based on video summary with multiple choice and short answer questions. Correct answers are stored server-side only and NOT returned to client. Returns quizId for submission. Cached for 30 days.",
+                            "parameters": [
+                                {
+                                    "name": "videoId",
+                                    "in": "path",
+                                    "required": true,
+                                    "description": "YouTube video ID",
+                                    "schema": {
+                                        "type": "string"
+                                    },
+                                    "example": "Ks-_Mh1QhMc"
+                                },
+                                {
+                                    "name": "num_mcq",
+                                    "in": "query",
+                                    "required": false,
+                                    "description": "Number of multiple choice questions (0-10)",
+                                    "schema": {
+                                        "type": "integer",
+                                        "minimum": 0,
+                                        "maximum": 10,
+                                        "default": 3
+                                    },
+                                    "example": 3
+                                },
+                                {
+                                    "name": "num_short",
+                                    "in": "query",
+                                    "required": false,
+                                    "description": "Number of short answer questions (0-10)",
+                                    "schema": {
+                                        "type": "integer",
+                                        "minimum": 0,
+                                        "maximum": 10,
+                                        "default": 2
+                                    },
+                                    "example": 2
+                                }
+                            ],
+                            "responses": {
+                                "200": {
+                                    "description": "Quiz questions (without correct answers)",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "quizId": {"type": "string"},
+                                                    "videoId": {"type": "string"},
+                                                    "questions": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "id": {"type": "string"},
+                                                                "type": {"type": "string", "enum": ["mcq", "short"]},
+                                                                "prompt": {"type": "string"},
+                                                                "options": {
+                                                                    "type": "array",
+                                                                    "items": {"type": "string"}
+                                                                },
+                                                                "points": {"type": "integer"}
+                                                            }
+                                                        }
+                                                    },
+                                                    "totalPoints": {"type": "integer"}
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "/api/quiz/{quizId}/submit": {
+                        "post": {
+                            "tags": ["AI Features"],
+                            "summary": "Submit Quiz",
+                            "description": "Submit quiz answers for grading. MCQ answers are integers (option index), short answers are strings. Returns graded attempt with score, per-question feedback, and AI-generated learning report including strengths, weaknesses, and micro exercises.",
+                            "parameters": [
+                                {
+                                    "name": "quizId",
+                                    "in": "path",
+                                    "required": true,
+                                    "description": "Quiz ID from quiz generation response",
+                                    "schema": {
+                                        "type": "string"
+                                    }
+                                }
+                            ],
+                            "requestBody": {
+                                "required": true,
+                                "content": {
+                                    "application/json": {
+                                        "schema": {
+                                            "type": "object",
+                                            "properties": {
+                                                "answers": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "questionId": {
+                                                                "type": "integer",
+                                                                "description": "Question index (0-based)"
+                                                            },
+                                                            "answer": {
+                                                                "oneOf": [
+                                                                    {"type": "string"},
+                                                                    {"type": "integer"}
+                                                                ],
+                                                                "description": "For MCQ: option index (integer), For short answer: text response (string)"
+                                                            }
+                                                        },
+                                                        "required": ["questionId", "answer"]
+                                                    }
+                                                }
+                                            },
+                                            "required": ["answers"]
+                                        },
+                                        "example": {
+                                            "answers": [
+                                                {"questionId": 0, "answer": 1},
+                                                {"questionId": 1, "answer": 2},
+                                                {"questionId": 2, "answer": 0},
+                                                {"questionId": 3, "answer": "The video explains key programming concepts with practical examples."},
+                                                {"questionId": 4, "answer": "Benefits include better code organization and reusability."}
+                                            ]
+                                        }
+                                    }
+                                }
+                            },
+                            "responses": {
+                                "200": {
+                                    "description": "Grading results with AI-generated report",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "attempt": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "scorePercent": {"type": "number"},
+                                                            "pointsEarned": {"type": "number"},
+                                                            "pointsPossible": {"type": "number"},
+                                                            "questionFeedbacks": {
+                                                                "type": "array",
+                                                                "items": {
+                                                                    "type": "object",
+                                                                    "properties": {
+                                                                        "questionId": {"type": "integer"},
+                                                                        "type": {"type": "string"},
+                                                                        "pointsEarned": {"type": "number"},
+                                                                        "maxPoints": {"type": "number"},
+                                                                        "feedback": {"type": "string"}
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    },
+                                                    "report": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "overall_percent": {"type": "number"},
+                                                            "strengths": {
+                                                                "type": "array",
+                                                                "items": {"type": "string"}
+                                                            },
+                                                            "weaknesses": {
+                                                                "type": "array",
+                                                                "items": {"type": "string"}
+                                                            },
+                                                            "detailed_feedback": {
+                                                                "type": "array",
+                                                                "items": {"type": "string"}
+                                                            },
+                                                            "micro_exercises": {
+                                                                "type": "array",
+                                                                "items": {
+                                                                    "type": "object",
+                                                                    "properties": {
+                                                                        "task": {"type": "string"},
+                                                                        "purpose": {"type": "string"}
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "/export-openapi": {
+                        "get": {
+                            "tags": ["Utilities"],
+                            "summary": "Export OpenAPI Spec",
+                            "description": "Export the OpenAPI specification to openapi.json file at project root. Use this to generate API documentation or share the spec with others.",
+                            "responses": {
+                                "200": {
+                                    "description": "Export confirmation",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "message": {"type": "string"},
+                                                    "path": {"type": "string"},
+                                                    "size_bytes": {"type": "integer"}
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            // Initialize Swagger UI
+            window.ui = SwaggerUIBundle({
+                spec: spec,
+                dom_id: '#swagger-ui',
+                deepLinking: true,
+                presets: [
+                    SwaggerUIBundle.presets.apis,
+                    SwaggerUIStandalonePreset
+                ],
+                plugins: [
+                    SwaggerUIBundle.plugins.DownloadUrl
+                ],
+                layout: "StandaloneLayout"
+            });
+        };
+    </script>
+</body>
+</html>

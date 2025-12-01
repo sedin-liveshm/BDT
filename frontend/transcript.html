@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Transcript</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        .input-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+
+        input[type="text"] {
+            padding: 10px;
+            font-size: 16px;
+            width: 300px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        #transcript-display {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: none;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .segment {
+            display: flex;
+            gap: 15px;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .segment:last-child {
+            border-bottom: none;
+        }
+
+        .timestamp {
+            color: #007bff;
+            font-family: monospace;
+            min-width: 60px;
+            flex-shrink: 0;
+        }
+
+        .text {
+            color: #333;
+            line-height: 1.5;
+        }
+
+        .error {
+            color: red;
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Video Transcript</h1>
+
+    <div class="input-container">
+        <input type="text" id="videoIdInput" placeholder="Enter Video ID (e.g. Ks-_Mh1QhMc)">
+        <button onclick="fetchTranscript()">Get Transcript</button>
+    </div>
+
+    <div id="transcript-display"></div>
+
+    <p id="error-msg" class="error"></p>
+
+    <script>
+        function formatTime(seconds) {
+            const min = Math.floor(seconds / 60);
+            const sec = Math.floor(seconds % 60);
+            return `${min}:${sec.toString().padStart(2, '0')}`;
+        }
+
+        async function fetchTranscript() {
+            const videoId = document.getElementById('videoIdInput').value.trim();
+            const display = document.getElementById('transcript-display');
+            const errorMsg = document.getElementById('error-msg');
+
+            if (!videoId) {
+                errorMsg.textContent = 'Please enter a Video ID.';
+                display.style.display = 'none';
+                return;
+            }
+
+            errorMsg.textContent = 'Loading...';
+            display.style.display = 'none';
+
+            try {
+                const response = await fetch(`http://127.0.0.1:8000/api/video/${videoId}/transcript`);
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Failed to fetch transcript');
+                }
+
+                const data = await response.json();
+                display.innerHTML = '';
+
+                if (data.segments.length === 0) {
+                    display.innerHTML = '<p style="text-align:center">No transcript segments found.</p>';
+                } else {
+                    data.segments.forEach(seg => {
+                        const div = document.createElement('div');
+                        div.className = 'segment';
+                        div.innerHTML = `
+                            <span class="timestamp">${formatTime(seg.start)}</span>
+                            <span class="text">${seg.text}</span>
+                        `;
+                        display.appendChild(div);
+                    });
+                }
+
+                display.style.display = 'block';
+                errorMsg.textContent = '';
+
+            } catch (error) {
+                console.error('Error:', error);
+                errorMsg.textContent = `Error: ${error.message}`;
+                display.style.display = 'none';
+            }
+        }
+    </script>
+
+</body>
+
+</html>

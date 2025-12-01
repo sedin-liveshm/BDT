@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Quiz Generator</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        .input-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        input[type="text"],
+        input[type="number"] {
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        input[type="text"] {
+            width: 300px;
+        }
+
+        input[type="number"] {
+            width: 80px;
+        }
+
+        label {
+            font-size: 14px;
+            color: #666;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        #quiz-display {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+
+        .quiz-header {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #28a745;
+        }
+
+        .quiz-header h2 {
+            color: #28a745;
+            margin: 0 0 5px 0;
+        }
+
+        .quiz-stats {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .question {
+            background: #f8f9fa;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #28a745;
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .question-number {
+            font-weight: bold;
+            color: #28a745;
+            font-size: 18px;
+        }
+
+        .question-type {
+            background: #28a745;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+
+        .question-prompt {
+            font-size: 16px;
+            margin-bottom: 15px;
+            color: #333;
+            line-height: 1.5;
+        }
+
+        .mcq-options {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .mcq-option {
+            background: white;
+            padding: 12px;
+            margin-bottom: 8px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .mcq-option:hover {
+            border-color: #28a745;
+            background: #f0fff4;
+        }
+
+        .mcq-option.selected {
+            border-color: #28a745;
+            background: #d4edda;
+        }
+
+        .mcq-option input[type="radio"] {
+            margin-right: 10px;
+        }
+
+        .short-answer {
+            width: 100%;
+            min-height: 80px;
+            padding: 12px;
+            font-size: 14px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-family: inherit;
+            resize: vertical;
+        }
+
+        .short-answer:focus {
+            outline: none;
+            border-color: #28a745;
+        }
+
+        .points-badge {
+            background: #ffc107;
+            color: #333;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .error {
+            color: red;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .loading {
+            text-align: center;
+            color: #666;
+            font-size: 16px;
+        }
+
+        .submit-section {
+            margin-top: 30px;
+            text-align: center;
+            padding-top: 20px;
+            border-top: 2px solid #ddd;
+        }
+
+        .submit-btn {
+            background-color: #007bff;
+            font-size: 18px;
+            padding: 12px 40px;
+        }
+
+        .submit-btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>🎯 Video Quiz Generator</h1>
+
+    <div class="input-container">
+        <input type="text" id="videoIdInput" placeholder="Enter Video ID (e.g. Ks-_Mh1QhMc)">
+        
+        <div>
+            <label for="numMcq">MCQ:</label>
+            <input type="number" id="numMcq" value="3" min="0" max="10">
+        </div>
+        
+        <div>
+            <label for="numShort">Short Answer:</label>
+            <input type="number" id="numShort" value="2" min="0" max="10">
+        </div>
+        
+        <button id="generateBtn" onclick="generateQuiz()">Generate Quiz</button>
+    </div>
+
+    <div id="quiz-display">
+        <div class="quiz-header">
+            <h2>📝 Quiz</h2>
+            <div class="quiz-stats">
+                <span id="questionCount"></span> | 
+                <span id="totalPoints"></span>
+            </div>
+        </div>
+        
+        <div id="questions-container"></div>
+        
+        <div class="submit-section">
+            <button class="submit-btn" onclick="submitQuiz()">Submit Answers</button>
+        </div>
+    </div>
+
+    <p id="error-msg" class="error"></p>
+
+    <script>
+        let quizData = null;
+        let quizId = null;
+
+        async function generateQuiz() {
+            const videoId = document.getElementById('videoIdInput').value.trim();
+            const numMcq = parseInt(document.getElementById('numMcq').value) || 0;
+            const numShort = parseInt(document.getElementById('numShort').value) || 0;
+            const display = document.getElementById('quiz-display');
+            const errorMsg = document.getElementById('error-msg');
+            const btn = document.getElementById('generateBtn');
+
+            if (!videoId) {
+                errorMsg.textContent = 'Please enter a Video ID.';
+                display.style.display = 'none';
+                return;
+            }
+
+            if (numMcq === 0 && numShort === 0) {
+                errorMsg.textContent = 'Please specify at least one question.';
+                display.style.display = 'none';
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Generating...';
+            errorMsg.innerHTML = '<p class="loading">⏳ Generating quiz... This may take 30-60 seconds.</p>';
+            display.style.display = 'none';
+
+            try {
+                const response = await fetch(
+                    `http://127.0.0.1:8000/api/video/${videoId}/quiz?num_mcq=${numMcq}&num_short=${numShort}`
+                );
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Failed to generate quiz');
+                }
+
+                quizData = await response.json();
+                // Generate quizId from videoId and parameters (matches server-side logic)
+                quizId = quizData.quizId || `${videoId}_${numMcq}_${numShort}`;
+                
+                renderQuiz(quizData);
+
+                display.style.display = 'block';
+                errorMsg.textContent = '';
+
+            } catch (error) {
+                console.error('Error:', error);
+                errorMsg.textContent = `Error: ${error.message}`;
+                display.style.display = 'none';
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Generate Quiz';
+            }
+        }
+
+        function renderQuiz(data) {
+            // Update header
+            const questionCount = data.questions.length;
+            const totalPoints = data.totalPoints || questionCount;
+            
+            document.getElementById('questionCount').textContent = `${questionCount} Questions`;
+            document.getElementById('totalPoints').textContent = `${totalPoints} Points Total`;
+
+            // Render questions
+            const container = document.getElementById('questions-container');
+            container.innerHTML = '';
+
+            data.questions.forEach((question, index) => {
+                const questionDiv = document.createElement('div');
+                questionDiv.className = 'question';
+                questionDiv.id = `question-${question.id}`;
+
+                const header = `
+                    <div class="question-header">
+                        <span class="question-number">Question ${index + 1}</span>
+                        <div>
+                            <span class="question-type">${question.type === 'mcq' ? 'Multiple Choice' : 'Short Answer'}</span>
+                            <span class="points-badge">${question.max_points || 1} pts</span>
+                        </div>
+                    </div>
+                `;
+
+                const prompt = `<div class="question-prompt">${question.prompt}</div>`;
+
+                let answerSection = '';
+                if (question.type === 'mcq' && question.options) {
+                    answerSection = '<ul class="mcq-options">';
+                    question.options.forEach((option, optIndex) => {
+                        answerSection += `
+                            <li class="mcq-option" onclick="selectOption('${question.id}', ${optIndex})">
+                                <input type="radio" name="q-${question.id}" id="opt-${question.id}-${optIndex}" value="${optIndex}">
+                                <label for="opt-${question.id}-${optIndex}">${option}</label>
+                            </li>
+                        `;
+                    });
+                    answerSection += '</ul>';
+                } else {
+                    answerSection = `
+                        <textarea 
+                            class="short-answer" 
+                            id="answer-${question.id}" 
+                            placeholder="Type your answer here..."
+                        ></textarea>
+                    `;
+                }
+
+                questionDiv.innerHTML = header + prompt + answerSection;
+                container.appendChild(questionDiv);
+            });
+        }
+
+        function selectOption(questionId, optionIndex) {
+            const radio = document.getElementById(`opt-${questionId}-${optionIndex}`);
+            radio.checked = true;
+            
+            // Update visual selection
+            const options = document.querySelectorAll(`#question-${questionId} .mcq-option`);
+            options.forEach(opt => opt.classList.remove('selected'));
+            options[optionIndex].classList.add('selected');
+        }
+
+        async function submitQuiz() {
+            if (!quizData || !quizId) {
+                alert('Please generate a quiz first.');
+                return;
+            }
+
+            const answers = [];
+            let unanswered = [];
+
+            quizData.questions.forEach((question, index) => {
+                if (question.type === 'mcq') {
+                    const selected = document.querySelector(`input[name="q-${question.id}"]:checked`);
+                    if (selected) {
+                        const optionIndex = parseInt(selected.value);
+                        answers.push({
+                            questionId: index,
+                            answer: optionIndex
+                        });
+                    } else {
+                        unanswered.push(index + 1);
+                    }
+                } else {
+                    const answer = document.getElementById(`answer-${question.id}`).value.trim();
+                    if (answer) {
+                        answers.push({
+                            questionId: index,
+                            answer: answer
+                        });
+                    } else {
+                        unanswered.push(index + 1);
+                    }
+                }
+            });
+
+            if (unanswered.length > 0) {
+                alert(`Please answer all questions. Unanswered: Question ${unanswered.join(', ')}`);
+                return;
+            }
+
+            // Submit to grading endpoint
+            const submitBtn = document.querySelector('.submit-btn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+
+            try {
+                const response = await fetch(`http://127.0.0.1:8000/api/quiz/${quizId}/submit`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ answers })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Failed to submit quiz');
+                }
+
+                const result = await response.json();
+                
+                // Store result in sessionStorage for the report page
+                sessionStorage.setItem('quizResult', JSON.stringify(result));
+                sessionStorage.setItem('quizData', JSON.stringify(quizData));
+                
+                // Redirect to report page
+                window.location.href = `submit_quiz.html?quizId=${quizId}`;
+
+            } catch (error) {
+                console.error('Submission error:', error);
+                alert(`Failed to submit quiz: ${error.message}`);
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit Answers';
+            }
+        }
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,226 @@
+{
+  "info": {
+    "name": "YtLearner API",
+    "description": "Complete API collection for YtLearner - YouTube learning assistant with AI-powered features",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8000",
+      "type": "string"
+    },
+    {
+      "key": "video_id",
+      "value": "Ks-_Mh1QhMc",
+      "type": "string"
+    },
+    {
+      "key": "quiz_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/",
+          "host": ["{{base_url}}"],
+          "path": [""]
+        },
+        "description": "Check API health and get basic information"
+      },
+      "response": []
+    },
+    {
+      "name": "Search Videos",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/search?q=python tutorial&maxResults=5",
+          "host": ["{{base_url}}"],
+          "path": ["api", "search"],
+          "query": [
+            {
+              "key": "q",
+              "value": "python tutorial",
+              "description": "Search query"
+            },
+            {
+              "key": "maxResults",
+              "value": "5",
+              "description": "Maximum number of results (1-50)"
+            }
+          ]
+        },
+        "description": "Search YouTube videos using the YouTube Data API v3. Returns video metadata including title, description, thumbnails, and statistics."
+      },
+      "response": []
+    },
+    {
+      "name": "Get Video Metadata",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/video/{{video_id}}/metadata",
+          "host": ["{{base_url}}"],
+          "path": ["api", "video", "{{video_id}}", "metadata"],
+          "variable": [
+            {
+              "key": "video_id",
+              "value": "{{video_id}}"
+            }
+          ]
+        },
+        "description": "Get detailed metadata for a specific YouTube video including title, description, duration, view count, like count, and channel information. Results are cached for 7 days."
+      },
+      "response": []
+    },
+    {
+      "name": "Get Video Transcript",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/video/{{video_id}}/transcript",
+          "host": ["{{base_url}}"],
+          "path": ["api", "video", "{{video_id}}", "transcript"],
+          "variable": [
+            {
+              "key": "video_id",
+              "value": "{{video_id}}"
+            }
+          ]
+        },
+        "description": "Fetch the transcript/subtitles for a YouTube video. Returns timestamped text segments. Requires video to have available captions."
+      },
+      "response": []
+    },
+    {
+      "name": "Generate Video Summary",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/video/{{video_id}}/summary",
+          "host": ["{{base_url}}"],
+          "path": ["api", "video", "{{video_id}}", "summary"],
+          "variable": [
+            {
+              "key": "video_id",
+              "value": "{{video_id}}"
+            }
+          ]
+        },
+        "description": "Generate an AI-powered summary of a YouTube video using Google Gemini. Returns main points, detailed summary, key takeaways, and prerequisites. Cached for 30 days. Falls back to extractive summarization if GEMINI_API_KEY is not set."
+      },
+      "response": []
+    },
+    {
+      "name": "Generate Quiz",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// Extract quizId from response and save it",
+              "if (pm.response.code === 200) {",
+              "    const jsonData = pm.response.json();",
+              "    if (jsonData.quizId) {",
+              "        pm.collectionVariables.set('quiz_id', jsonData.quizId);",
+              "        console.log('Quiz ID saved:', jsonData.quizId);",
+              "    }",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/video/{{video_id}}/quiz?num_mcq=3&num_short=2",
+          "host": ["{{base_url}}"],
+          "path": ["api", "video", "{{video_id}}", "quiz"],
+          "query": [
+            {
+              "key": "num_mcq",
+              "value": "3",
+              "description": "Number of multiple choice questions (0-10)"
+            },
+            {
+              "key": "num_short",
+              "value": "2",
+              "description": "Number of short answer questions (0-10)"
+            }
+          ],
+          "variable": [
+            {
+              "key": "video_id",
+              "value": "{{video_id}}"
+            }
+          ]
+        },
+        "description": "Generate a quiz based on video summary with multiple choice and short answer questions. Correct answers are stored server-side only and NOT returned to client. Returns quizId for submission. Cached for 30 days."
+      },
+      "response": []
+    },
+    {
+      "name": "Submit Quiz",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"answers\": [\n    {\n      \"questionId\": 0,\n      \"answer\": 1\n    },\n    {\n      \"questionId\": 1,\n      \"answer\": 2\n    },\n    {\n      \"questionId\": 2,\n      \"answer\": 0\n    },\n    {\n      \"questionId\": 3,\n      \"answer\": \"The video explains the main concepts of Python including variables, data types, and control structures. It demonstrates how to use loops and functions effectively.\"\n    },\n    {\n      \"questionId\": 4,\n      \"answer\": \"Key benefits include easy syntax, extensive libraries, cross-platform compatibility, and strong community support.\"\n    }\n  ]\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/quiz/{{quiz_id}}/submit",
+          "host": ["{{base_url}}"],
+          "path": ["api", "quiz", "{{quiz_id}}", "submit"],
+          "variable": [
+            {
+              "key": "quiz_id",
+              "value": "{{quiz_id}}",
+              "description": "Quiz ID from quiz generation response"
+            }
+          ]
+        },
+        "description": "Submit quiz answers for grading. MCQ answers are integers (option index), short answers are strings. Returns graded attempt with score, per-question feedback, and AI-generated learning report including strengths, weaknesses, and micro exercises."
+      },
+      "response": []
+    },
+    {
+      "name": "Export OpenAPI Spec",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/export-openapi",
+          "host": ["{{base_url}}"],
+          "path": ["export-openapi"]
+        },
+        "description": "Export the OpenAPI specification to openapi.json file at project root. Use this to generate API documentation or share the spec with others."
+      },
+      "response": []
+    }
+  ]
+}

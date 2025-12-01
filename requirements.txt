@@ -1,0 +1,17 @@
+# Core FastAPI dependencies
+fastapi>=0.104.0
+uvicorn>=0.24.0
+python-dotenv>=1.0.0
+
+# HTTP client
+httpx>=0.25.0
+
+# MongoDB (optional)
+motor>=3.3.0
+
+# YouTube integration
+youtube-transcript-api>=0.6.0
+isodate>=0.6.1
+
+# Google Gemini AI
+google-genai>=0.2.0
