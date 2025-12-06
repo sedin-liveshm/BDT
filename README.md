@@ -21,7 +21,7 @@
    
    Or install manually:
    ```bash
-   pip install fastapi uvicorn httpx motor python-dotenv isodate youtube-transcript-api google-genai
+   pip install fastapi uvicorn httpx motor python-dotenv isodate yt-dlp webvtt-py google-genai
    ```
 
 ### Running the Backend
@@ -62,11 +62,19 @@
    - Open `frontend/metadata.html` in your browser.
    - Enter a Video ID (e.g., `Ks-_Mh1QhMc`) and click "Get Metadata".
 
-## Feature 3: Transcript Endpoint
+## Feature 3: Transcript Endpoint (Production)
 
 ### Usage
 - **Endpoint**: `GET /api/video/{videoId}/transcript`
-- **Dependencies**: Requires `youtube-transcript-api`.
+- **Technology**: Uses **yt-dlp** to download subtitles directly from YouTube
+- **Production-Ready**: Works reliably in production environments (no API blocking issues)
+- **Support**: Auto-generated and manual captions in English
+
+### How It Works
+1. Downloads subtitle files using yt-dlp Python library
+2. Parses VTT/JSON subtitle formats
+3. Returns timestamped transcript segments
+4. Works even when youtube-transcript-api is blocked
 
 ### Testing
 1. **Curl**:
@@ -76,6 +84,8 @@
 2. **Frontend**:
    - Open `frontend/transcript.html` in your browser.
    - Enter a Video ID (e.g., `Ks-_Mh1QhMc`) and click "Get Transcript".
+3. **Test UI**:
+   - Open `frontend/transcript_test.html` for detailed testing with performance metrics
 
 ## Feature 4: Summary Generation
 

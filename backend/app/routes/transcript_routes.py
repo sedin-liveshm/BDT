@@ -9,6 +9,7 @@ async def get_video_transcript(
     videoId: str = Path(..., description="The ID of the YouTube video")
 ):
     """
-    Get the transcript (captions) for a YouTube video.
+    Get the transcript (captions) for a YouTube video using yt-dlp.
+    Downloads subtitles directly from YouTube - works reliably in production.
     """
     return await get_transcript(videoId)

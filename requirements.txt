@@ -10,8 +10,9 @@ httpx>=0.25.0
 motor>=3.3.0
 
 # YouTube integration
-youtube-transcript-api>=0.6.0
 isodate>=0.6.1
+yt-dlp>=2024.0.0
+webvtt-py>=0.5.0
 
 # Google Gemini AI
 google-genai>=0.2.0
