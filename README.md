@@ -14,7 +14,13 @@
    - Add your `YOUTUBE_API_KEY`.
    - (Optional) Add `MONGO_URI` if you want caching.
 
-2. **Install Dependencies**
+2. **YouTube Cookies (Important for Transcripts)**
+   - Export cookies from your browser to `cookies.txt`
+   - See `cookies.template` for instructions
+   - Required if you get "bot detection" errors on transcripts
+   - Already in .gitignore (won't be committed)
+
+3. **Install Dependencies**
    ```bash
    pip install -r requirements.txt
    ```

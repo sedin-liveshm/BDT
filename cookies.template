@@ -1,0 +1,27 @@
+# YouTube Cookies File (Netscape HTTP Cookie File Format)
+# 
+# This file should contain your YouTube cookies exported from your browser.
+# Rename this file to 'cookies.txt' and replace with actual cookies.
+#
+# HOW TO EXPORT COOKIES: 
+# 
+# Method 1: Using Browser Extension (Recommended)
+# - Chrome/Edge: Install "Get cookies.txt LOCALLY" extension
+# - Firefox: Install "cookies.txt" extension
+# - Visit youtube.com while logged in
+# - Click the extension icon and export cookies
+# - Save as 'cookies.txt' in this directory
+#
+# Method 2: Using yt-dlp
+# - Run: yt-dlp --cookies-from-browser chrome --cookies cookies.txt "https://www.youtube.com/watch?v=test"
+# - Replace 'chrome' with your browser (firefox, edge, safari, etc.)
+#
+# IMPORTANT:
+# - Keep cookies.txt private (already in .gitignore)
+# - Refresh cookies every few months when they expire
+# - For production deployment, use environment secrets or file storage
+#
+# The file should look like:
+# # Netscape HTTP Cookie File
+# .youtube.com	TRUE	/	TRUE	1234567890	COOKIE_NAME	COOKIE_VALUE
+# .youtube.com	TRUE	/	FALSE	1234567890	ANOTHER_COOKIE	ANOTHER_VALUE

@@ -15,6 +15,19 @@ async def get_transcript_ytdlp(video_id: str) -> Dict[str, Any]:
     temp_dir = tempfile.mkdtemp()
     
     try:
+        # Find cookies.txt file (check multiple possible locations)
+        cookies_path = None
+        possible_paths = [
+            os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), 'cookies.txt'),  # Project root
+            os.path.join(os.getcwd(), 'cookies.txt'),  # Current working directory
+            '/etc/secrets/cookies.txt',  # Production secret mount (Railway/Render)
+        ]
+        
+        for path in possible_paths:
+            if os.path.exists(path):
+                cookies_path = path
+                break
+        
         # Configure yt-dlp options
         ydl_opts = {
             'skip_download': True,
@@ -26,6 +39,10 @@ async def get_transcript_ytdlp(video_id: str) -> Dict[str, Any]:
             'quiet': True,
             'no_warnings': True,
         }
+        
+        # Add cookies if available
+        if cookies_path:
+            ydl_opts['cookiefile'] = cookies_path
         
         # Download subtitles
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:

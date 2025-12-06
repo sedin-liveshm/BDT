@@ -92,10 +92,73 @@ curl "http://127.0.0.1:8000/api/video/Ks-_Mh1QhMc/transcript"
 
 ## Deployment Notes
 
+### YouTube Cookie Authentication (IMPORTANT!)
+
+**Why Cookies Are Needed:**
+YouTube may detect bot traffic and require authentication. If you see errors like "Sign in to confirm you're not a bot", you need to provide cookies.
+
+**Setup Instructions:**
+
+1. **Export Cookies from Browser:**
+   ```bash
+   # Method 1: Using browser extension (easiest)
+   # - Install "Get cookies.txt LOCALLY" extension (Chrome/Edge)
+   # - Visit youtube.com while logged in
+   # - Click extension and export as cookies.txt
+   
+   # Method 2: Using yt-dlp command
+   yt-dlp --cookies-from-browser chrome --cookies cookies.txt "https://www.youtube.com/watch?v=test"
+   # Replace 'chrome' with: firefox, edge, safari, etc.
+   ```
+
+2. **Local Development:**
+   - Save cookies.txt in project root: `YtLearner/cookies.txt`
+   - Server will auto-detect and use it
+   - Already added to .gitignore (won't be committed)
+
+3. **Production Deployment:**
+
+   **Render:**
+   ```bash
+   # Upload cookies.txt as secret file
+   # Go to Dashboard → Environment → Secret Files
+   # Add file: /etc/secrets/cookies.txt
+   ```
+
+   **Railway:**
+   ```bash
+   # Use Railway CLI to add secret file
+   railway run --service=backend --mount=/etc/secrets/cookies.txt:cookies.txt
+   ```
+
+   **Docker:**
+   ```dockerfile
+   # Add to Dockerfile
+   COPY cookies.txt /etc/secrets/cookies.txt
+   
+   # Or mount as volume
+   docker run -v ./cookies.txt:/etc/secrets/cookies.txt ...
+   ```
+
+   **Environment Variable (Alternative):**
+   ```bash
+   # If file upload not supported, use base64 encoding
+   YOUTUBE_COOKIES_BASE64=$(cat cookies.txt | base64)
+   # Then decode in code (see ytdlp_transcript_service.py)
+   ```
+
+4. **Refresh Cookies Periodically:**
+   - Cookies expire after a few months
+   - Re-export when you see auth errors
+   - Set calendar reminder to refresh quarterly
+
 ### Environment Variables
-No additional env vars needed for transcripts! Just:
+Required env vars:
 - `YOUTUBE_API_KEY` (for search/metadata)
 - `GEMINI_API_KEY` (for summaries/quizzes)
+
+Optional:
+- Cookies handled via cookies.txt file (see above)
 
 ### Platform Support
 - ✅ Render

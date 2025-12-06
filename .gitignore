@@ -2,6 +2,9 @@
 .env
 env.template
 
+# Cookies (YouTube authentication)
+cookies.txt
+
 # Python cache
 __pycache__/
 *.py[cod]
