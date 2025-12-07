@@ -3,7 +3,6 @@ import hashlib
 from datetime import datetime, timedelta
 from typing import Dict, Any, List
 from motor.motor_asyncio import AsyncIOMotorClient
-import httpx
 from fastapi import HTTPException
 
 from . import llm_client
@@ -108,14 +107,16 @@ async def get_or_generate_quiz(
         print(f"Cache hit for quiz: {quiz_id}")
         return strip_sensitive_data(cached)
     
-    # Fetch summary to generate quiz from
+    # Fetch summary to generate quiz from (import at top to avoid circular import)
+    from ..routes.summary_routes import get_cached_summary, get_summary
+    
     try:
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                f"http://127.0.0.1:8000/api/video/{video_id}/summary"
-            )
-            response.raise_for_status()
-            summary_data = response.json()
+        # Try cache first, then generate if needed
+        summary_data = await get_cached_summary(video_id)
+        if not summary_data:
+            summary_data = await get_summary(video_id)
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=500,

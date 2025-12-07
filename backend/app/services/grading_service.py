@@ -3,7 +3,6 @@ import math
 from datetime import datetime
 from typing import Dict, Any, List, Tuple
 from motor.motor_asyncio import AsyncIOMotorClient
-import httpx
 
 from . import llm_client
 
@@ -194,15 +193,17 @@ async def grade_quiz_submission(
     # Calculate percentage
     score_percent = (total_points_earned / total_points_possible * 100) if total_points_possible > 0 else 0
     
-    # Fetch video summary for report generation
+    # Fetch video summary for report generation (import at top to avoid circular import)
+    from ..routes.summary_routes import get_cached_summary, get_summary
+    
     video_id = quiz.get("videoId")
     summary_data = None
     if video_id:
         try:
-            async with httpx.AsyncClient() as client:
-                response = await client.get(f"http://127.0.0.1:8000/api/video/{video_id}/summary")
-                if response.status_code == 200:
-                    summary_data = response.json()
+            # Try cache first, then generate if needed
+            summary_data = await get_cached_summary(video_id)
+            if not summary_data:
+                summary_data = await get_summary(video_id)
         except Exception as e:
             print(f"Warning: Could not fetch summary for report: {e}")
     

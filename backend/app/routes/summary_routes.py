@@ -3,9 +3,9 @@ from fastapi import APIRouter, Path, HTTPException
 from typing import Dict, Any
 from datetime import datetime, timedelta
 from motor.motor_asyncio import AsyncIOMotorClient
-import httpx
 
 from ..services import llm_client
+from ..services.transcript_service import get_transcript
 
 router = APIRouter()
 
@@ -92,12 +92,11 @@ async def get_summary(
         print(f"Cache hit for summary: {videoId}")
         return cached
     
-    # Fetch transcript
+    # Fetch transcript directly (no HTTP call)
     try:
-        async with httpx.AsyncClient() as client:
-            response = await client.get(f"http://127.0.0.1:8000/api/video/{videoId}/transcript")
-            response.raise_for_status()
-            transcript_data = response.json()
+        transcript_data = await get_transcript(videoId)
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch transcript: {str(e)}")
     
