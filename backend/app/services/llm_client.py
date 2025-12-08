@@ -68,6 +68,59 @@ def _clean_json_response(text: str) -> str:
     return text
 
 
+async def analyze_video_url(video_url: str) -> Dict[str, Any]:
+    """
+    Analyze a YouTube video directly using Gemini's video understanding capabilities.
+    Fallback when transcript is not available.
+    """
+    prompt = f"""Analyze this YouTube video and provide a comprehensive summary in JSON format.
+
+Video URL: {video_url}
+
+Provide a detailed analysis covering:
+1. Main topics and themes discussed
+2. Key points and takeaways
+3. Important concepts explained
+4. Overall focus and purpose of the video
+
+Respond with ONLY a valid JSON object (no markdown, no code fences) with this structure:
+{{
+  "summary": "A comprehensive 4-6 sentence summary of the entire video",
+  "takeaways": ["main takeaway 1", "main takeaway 2", "main takeaway 3", "main takeaway 4"],
+  "focus": "The primary focus or theme of the video in one sentence",
+  "topics": ["topic 1", "topic 2", "topic 3"],
+  "source": "video_analysis"
+}}
+"""
+    
+    try:
+        response = client.models.generate_content(
+            model=MODEL_NAME,
+            contents=prompt
+        )
+        
+        result_text = response.text
+        cleaned = _clean_json_response(result_text)
+        
+        try:
+            summary_data = json.loads(cleaned)
+            summary_data['source'] = 'video_analysis'
+            return summary_data
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to parse video analysis JSON: {e}")
+            logger.error(f"Response text: {result_text}")
+            # Return a basic structure
+            return {
+                "summary": cleaned[:500] if len(cleaned) > 500 else cleaned,
+                "takeaways": ["Unable to parse detailed analysis"],
+                "focus": "Video analysis completed but format parsing failed",
+                "source": "video_analysis"
+            }
+    except Exception as e:
+        logger.error(f"Video analysis failed: {e}")
+        raise RuntimeError(f"Failed to analyze video: {str(e)}")
+
+
 async def generate_text(prompt: str, max_tokens: int = 1000) -> str:
     """
     Generate text using Gemini API with the new google-genai SDK.
@@ -503,6 +556,151 @@ async def generate_report(attempt: Dict[str, Any], quiz: Dict[str, Any], summary
         logger.error(f"Error generating report with Gemini, using fallback: {e}")
         return generate_fallback_report(attempt, quiz, summary)
 
+
+async def get_learning_resources(topic: str) -> Dict[str, Any]:
+    """
+    Get curated learning resources for a specific topic from multiple platforms.
+    Returns structured recommendations for Udemy, LinkedIn Learning, Coursera, and government resources.
+    """
+    prompt = f"""You are an expert learning resource curator. A user wants to learn about "{topic}".
+
+Provide a comprehensive list of the BEST learning resources from multiple platforms. For each resource, provide:
+1. **Direct URL links** (actual working URLs, not placeholders)
+2. Course/resource title
+3. Platform name
+4. Brief description
+5. Difficulty level (Beginner/Intermediate/Advanced)
+6. Estimated duration (if applicable)
+
+Include resources from:
+1. **Udemy** - At least 3-5 top-rated courses with real Udemy URLs
+2. **LinkedIn Learning** - At least 3-5 courses with real LinkedIn Learning URLs
+3. **Coursera** - At least 3-5 courses with real Coursera URLs
+4. **Government Resources** - Official government learning portals, certifications, or educational websites (e.g., USA.gov learning, state education sites, government-funded MOOCs)
+5. **Other Platforms** - FreeCodeCamp, Khan Academy, edX, YouTube channels, official documentation
+
+**IMPORTANT:** 
+- Use REAL, WORKING URLs that users can click and access
+- For Udemy: https://www.udemy.com/course/[course-name]/
+- For LinkedIn: https://www.linkedin.com/learning/[course-name]
+- For Coursera: https://www.coursera.org/learn/[course-name]
+- For government: actual .gov domains or official educational portals
+- Prioritize free or affordable options
+- Include a mix of beginner to advanced resources
+
+Respond with ONLY a valid JSON object (no markdown, no code fences) with this structure:
+{{
+  "topic": "{topic}",
+  "udemy": [
+    {{
+      "title": "Course title",
+      "url": "https://www.udemy.com/course/...",
+      "description": "Brief description",
+      "level": "Beginner/Intermediate/Advanced",
+      "duration": "X hours",
+      "price": "Free/Paid"
+    }}
+  ],
+  "linkedin_learning": [
+    {{
+      "title": "Course title",
+      "url": "https://www.linkedin.com/learning/...",
+      "description": "Brief description",
+      "level": "Beginner/Intermediate/Advanced",
+      "duration": "X hours"
+    }}
+  ],
+  "coursera": [
+    {{
+      "title": "Course title",
+      "url": "https://www.coursera.org/learn/...",
+      "description": "Brief description",
+      "level": "Beginner/Intermediate/Advanced",
+      "duration": "X weeks",
+      "provider": "University/Organization name"
+    }}
+  ],
+  "government_resources": [
+    {{
+      "title": "Resource title",
+      "url": "https://...",
+      "description": "Brief description",
+      "organization": "Government agency/department",
+      "type": "Course/Certification/Portal"
+    }}
+  ],
+  "other_platforms": [
+    {{
+      "title": "Resource title",
+      "platform": "Platform name",
+      "url": "https://...",
+      "description": "Brief description",
+      "level": "Beginner/Intermediate/Advanced",
+      "price": "Free/Paid"
+    }}
+  ],
+  "learning_path": "Recommended step-by-step learning path in 2-3 sentences",
+  "total_resources": 25
+}}
+"""
+    
+    try:
+        logger.info(f"Fetching learning resources for topic: {topic}")
+        response = client.models.generate_content(
+            model=MODEL_NAME,
+            contents=prompt
+        )
+        
+        result_text = response.text
+        cleaned = _clean_json_response(result_text)
+        
+        try:
+            resources_data = json.loads(cleaned)
+            
+            # Validate structure
+            if not isinstance(resources_data, dict):
+                raise ValueError("Response is not a valid JSON object")
+            
+            # Ensure all required keys exist with defaults
+            resources_data.setdefault("topic", topic)
+            resources_data.setdefault("udemy", [])
+            resources_data.setdefault("linkedin_learning", [])
+            resources_data.setdefault("coursera", [])
+            resources_data.setdefault("government_resources", [])
+            resources_data.setdefault("other_platforms", [])
+            resources_data.setdefault("learning_path", "Start with beginner courses and progressively move to advanced topics.")
+            
+            # Count total resources
+            total = (
+                len(resources_data.get("udemy", [])) +
+                len(resources_data.get("linkedin_learning", [])) +
+                len(resources_data.get("coursera", [])) +
+                len(resources_data.get("government_resources", [])) +
+                len(resources_data.get("other_platforms", []))
+            )
+            resources_data["total_resources"] = total
+            
+            logger.info(f"Successfully fetched {total} learning resources")
+            return resources_data
+            
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to parse learning resources JSON: {e}")
+            logger.error(f"Response text: {result_text}")
+            # Return a basic structure with error info
+            return {
+                "topic": topic,
+                "udemy": [],
+                "linkedin_learning": [],
+                "coursera": [],
+                "government_resources": [],
+                "other_platforms": [],
+                "learning_path": "Unable to fetch resources at this time. Please try again.",
+                "total_resources": 0,
+                "error": "Failed to parse AI response"
+            }
+    except Exception as e:
+        logger.error(f"Learning resources fetch failed: {e}")
+        raise RuntimeError(f"Failed to fetch learning resources: {str(e)}")
 
 
 # Example local test runner (only run directly)

@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YtLearner - Video Summary</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.95;
+        }
+
+        .search-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 25px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            padding: 15px 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.5);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #667eea;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            display: none;
+        }
+
+        .content-grid.show {
+            display: grid;
+        }
+
+        @media (max-width: 968px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .video-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .video-header {
+            margin-bottom: 20px;
+        }
+
+        .video-header h2 {
+            color: #333;
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+
+        .channel-info {
+            color: #666;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .video-player {
+            width: 100%;
+            aspect-ratio: 16/9;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border: none;
+        }
+
+        .video-links {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .yt-link {
+            flex: 1;
+            padding: 12px 20px;
+            background: #ff0000;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+
+        .yt-link:hover {
+            background: #cc0000;
+        }
+
+        .video-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .summary-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .summary-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .summary-header h2 {
+            color: #333;
+            font-size: 1.5rem;
+        }
+
+        .method-badge {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .summary-text {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            line-height: 1.9;
+            color: #333;
+            font-size: 1.05rem;
+            margin-bottom: 25px;
+        }
+
+        .takeaways {
+            margin-bottom: 25px;
+        }
+
+        .takeaways h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        .takeaway-item {
+            background: #f0f4ff;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            border-left: 4px solid #667eea;
+            line-height: 1.6;
+        }
+
+        .topics {
+            margin-bottom: 25px;
+        }
+
+        .topics h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        .topic-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .topic-tag {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        .focus-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 25px;
+            border-radius: 10px;
+            font-style: italic;
+            font-size: 1.05rem;
+            line-height: 1.6;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #f5c6cb;
+        }
+
+        .sample-videos {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .sample-videos h3 {
+            color: white;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .sample-video {
+            background: rgba(255, 255, 255, 0.25);
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+            color: white;
+            font-size: 0.95rem;
+        }
+
+        .sample-video:hover {
+            background: rgba(255, 255, 255, 0.35);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎓 YtLearner</h1>
+            <p>Watch videos and get AI-powered summaries instantly</p>
+        </div>
+
+        <div class="sample-videos">
+            <h3>📚 Try These Sample Videos:</h3>
+            <div class="sample-video" onclick="loadVideo('Ks-_Mh1QhMc')">
+                <strong>Ks-_Mh1QhMc</strong> - Sample educational video
+            </div>
+            <div class="sample-video" onclick="loadVideo('dQw4w9WgXcQ')">
+                <strong>dQw4w9WgXcQ</strong> - Popular music video
+            </div>
+            <div class="sample-video" onclick="loadVideo('jNQXAC9IVRw')">
+                <strong>jNQXAC9IVRw</strong> - "Me at the zoo" - First YouTube video
+            </div>
+        </div>
+
+        <div class="search-card">
+            <div class="input-group">
+                <input 
+                    type="text" 
+                    id="videoId" 
+                    placeholder="Enter YouTube Video ID (e.g., Ks-_Mh1QhMc)"
+                    value=""
+                >
+                <button id="loadBtn" onclick="loadVideo()">🚀 Load Video & Summary</button>
+            </div>
+        </div>
+
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p><strong>Loading video and generating AI summary...</strong></p>
+            <p style="color: #666; margin-top: 10px;">This may take 15-30 seconds</p>
+        </div>
+
+        <div id="contentGrid" class="content-grid">
+            <div class="video-section">
+                <div class="video-header">
+                    <h2 id="videoTitle">Video Title</h2>
+                    <div class="channel-info">
+                        <span>📺 <span id="channelName">Channel Name</span></span>
+                    </div>
+                </div>
+
+                <iframe 
+                    id="videoPlayer" 
+                    class="video-player"
+                    src=""
+                    allowfullscreen
+                ></iframe>
+
+                <div class="video-links">
+                    <a id="ytLink" href="#" target="_blank" class="yt-link">
+                        ▶️ Watch on YouTube
+                    </a>
+                </div>
+
+                <div class="video-stats">
+                    <div class="stat-item">
+                        <div class="stat-value" id="viewCount">0</div>
+                        <div class="stat-label">Views</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="likeCount">0</div>
+                        <div class="stat-label">Likes</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="duration">0:00</div>
+                        <div class="stat-label">Duration</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="summary-section">
+                <div class="summary-header">
+                    <h2>📝 AI Summary</h2>
+                    <span class="method-badge">🤖 Gemini AI</span>
+                </div>
+
+                <div id="summaryContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://127.0.0.1:8000/api';
+
+        function loadVideo(videoId) {
+            if (!videoId) {
+                videoId = document.getElementById('videoId').value.trim();
+            }
+            
+            if (!videoId) {
+                alert('Please enter a video ID');
+                return;
+            }
+
+            // Update input field
+            document.getElementById('videoId').value = videoId;
+
+            const loading = document.getElementById('loading');
+            const contentGrid = document.getElementById('contentGrid');
+            const loadBtn = document.getElementById('loadBtn');
+            
+            // Reset UI
+            loading.classList.add('active');
+            contentGrid.classList.remove('show');
+            loadBtn.disabled = true;
+            
+            // Fetch both video metadata and summary
+            Promise.all([
+                fetch(`${API_BASE}/video/${videoId}/metadata`).then(r => r.json()),
+                fetch(`${API_BASE}/video/${videoId}/summary`).then(r => r.json())
+            ])
+            .then(([metadata, summary]) => {
+                displayVideo(metadata);
+                displaySummary(summary);
+                contentGrid.classList.add('show');
+            })
+            .catch(error => {
+                alert(`Error: ${error.message}`);
+                console.error(error);
+            })
+            .finally(() => {
+                loading.classList.remove('active');
+                loadBtn.disabled = false;
+            });
+        }
+
+        function displayVideo(data) {
+            document.getElementById('videoTitle').textContent = data.title;
+            document.getElementById('channelName').textContent = data.channelTitle;
+            document.getElementById('videoPlayer').src = data.embedUrl;
+            document.getElementById('ytLink').href = data.youtubeUrl;
+            
+            // Format numbers
+            document.getElementById('viewCount').textContent = formatNumber(data.statistics.viewCount);
+            document.getElementById('likeCount').textContent = formatNumber(data.statistics.likeCount);
+            document.getElementById('duration').textContent = formatDuration(data.durationSeconds);
+        }
+
+        function displaySummary(data) {
+            let html = `
+                <div class="summary-text">
+                    ${data.summary || 'No summary available'}
+                </div>
+            `;
+            
+            if (data.takeaways && data.takeaways.length > 0) {
+                html += `
+                    <div class="takeaways">
+                        <h3>💡 Key Takeaways</h3>
+                        ${data.takeaways.map(takeaway => `
+                            <div class="takeaway-item">${takeaway}</div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+            
+            if (data.topics && data.topics.length > 0) {
+                html += `
+                    <div class="topics">
+                        <h3>📚 Topics Covered</h3>
+                        <div class="topic-tags">
+                            ${data.topics.map(topic => `
+                                <span class="topic-tag">${topic}</span>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            if (data.focus) {
+                html += `
+                    <div class="focus-box">
+                        <strong>🎯 Main Focus:</strong> ${data.focus}
+                    </div>
+                `;
+            }
+            
+            document.getElementById('summaryContent').innerHTML = html;
+        }
+
+        function formatNumber(num) {
+            num = parseInt(num);
+            if (num >= 1000000) {
+                return (num / 1000000).toFixed(1) + 'M';
+            } else if (num >= 1000) {
+                return (num / 1000).toFixed(1) + 'K';
+            }
+            return num.toString();
+        }
+
+        function formatDuration(seconds) {
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            const secs = seconds % 60;
+            
+            if (hours > 0) {
+                return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            }
+            return `${minutes}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // Allow Enter key
+        document.getElementById('videoId').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                loadVideo();
+            }
+        });
+    </script>
+</body>
+</html>

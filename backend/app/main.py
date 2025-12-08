@@ -9,7 +9,7 @@ load_dotenv()
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from .routes import search_routes, video_routes, transcript_routes, summary_routes, quiz_routes, submit_routes
+from .routes import search_routes, video_routes, transcript_routes, summary_routes, quiz_routes, submit_routes, resources_routes
 
 app = FastAPI(
     title="YtLearner API",
@@ -48,6 +48,7 @@ app.include_router(transcript_routes.router, prefix="/api", tags=["transcript"])
 app.include_router(summary_routes.router, prefix="/api", tags=["summary"])
 app.include_router(quiz_routes.router, prefix="/api", tags=["quiz"])
 app.include_router(submit_routes.router, prefix="/api", tags=["submit"])
+app.include_router(resources_routes.router, prefix="/api", tags=["resources"])
 
 @app.get("/")
 async def root():

@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Learning Resources Finder - YtLearner</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.95;
+        }
+
+        .search-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+
+        .search-card h2 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            padding: 15px 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.5);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .sample-topics {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .topic-chip {
+            background: #f0f4ff;
+            color: #667eea;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.95rem;
+        }
+
+        .topic-chip:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #667eea;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .results {
+            display: none;
+        }
+
+        .results.show {
+            display: block;
+        }
+
+        .learning-path {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 25px;
+        }
+
+        .learning-path h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.4rem;
+        }
+
+        .learning-path p {
+            color: #555;
+            line-height: 1.8;
+            font-size: 1.05rem;
+        }
+
+        .stats-bar {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+
+        .platform-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 25px;
+        }
+
+        .platform-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .platform-icon {
+            font-size: 2rem;
+        }
+
+        .platform-header h3 {
+            color: #333;
+            font-size: 1.5rem;
+        }
+
+        .resource-count {
+            margin-left: auto;
+            background: #667eea;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        .resource-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .resource-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            transition: all 0.3s;
+            border-left: 4px solid #667eea;
+        }
+
+        .resource-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .resource-card h4 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .resource-card p {
+            color: #666;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .resource-meta {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .meta-badge {
+            background: white;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .resource-link {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+
+        .resource-link:hover {
+            transform: scale(1.05);
+        }
+
+        .provider-name {
+            color: #888;
+            font-size: 0.85rem;
+            margin-top: 5px;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #f5c6cb;
+        }
+
+        @media (max-width: 768px) {
+            .resource-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎓 Learning Resources Finder</h1>
+            <p>Discover the best courses from Udemy, Coursera, LinkedIn Learning & more</p>
+        </div>
+
+        <div class="search-card">
+            <h2>What do you want to learn?</h2>
+            <div class="input-group">
+                <input 
+                    type="text" 
+                    id="topicInput" 
+                    placeholder="Enter a topic (e.g., Python Programming, Machine Learning, Web Development)"
+                    value=""
+                >
+                <button id="searchBtn" onclick="searchResources()">🔍 Find Resources</button>
+            </div>
+            <div class="sample-topics">
+                <span class="topic-chip" onclick="setTopic('Python Programming')">Python Programming</span>
+                <span class="topic-chip" onclick="setTopic('Machine Learning')">Machine Learning</span>
+                <span class="topic-chip" onclick="setTopic('Web Development')">Web Development</span>
+                <span class="topic-chip" onclick="setTopic('Data Science')">Data Science</span>
+                <span class="topic-chip" onclick="setTopic('Cloud Computing')">Cloud Computing</span>
+                <span class="topic-chip" onclick="setTopic('Digital Marketing')">Digital Marketing</span>
+            </div>
+        </div>
+
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p><strong>Finding the best learning resources...</strong></p>
+            <p style="color: #666; margin-top: 10px;">This may take 15-20 seconds</p>
+        </div>
+
+        <div id="results" class="results">
+            <div id="learningPath" class="learning-path"></div>
+            <div id="statsBar" class="stats-bar"></div>
+            <div id="platformsContainer"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://127.0.0.1:8000/api';
+
+        function setTopic(topic) {
+            document.getElementById('topicInput').value = topic;
+            searchResources();
+        }
+
+        async function searchResources() {
+            const topic = document.getElementById('topicInput').value.trim();
+            
+            if (!topic) {
+                alert('Please enter a topic');
+                return;
+            }
+
+            if (topic.length < 2) {
+                alert('Topic must be at least 2 characters');
+                return;
+            }
+
+            const loading = document.getElementById('loading');
+            const results = document.getElementById('results');
+            const searchBtn = document.getElementById('searchBtn');
+            
+            // Reset UI
+            loading.classList.add('active');
+            results.classList.remove('show');
+            searchBtn.disabled = true;
+            
+            try {
+                const response = await fetch(`${API_BASE}/resources/recommendations`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ topic })
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Failed to fetch resources');
+                }
+                
+                const data = await response.json();
+                displayResults(data);
+                results.classList.add('show');
+                
+            } catch (error) {
+                alert(`Error: ${error.message}`);
+                console.error(error);
+            } finally {
+                loading.classList.remove('active');
+                searchBtn.disabled = false;
+            }
+        }
+
+        function displayResults(data) {
+            // Display learning path
+            const learningPath = document.getElementById('learningPath');
+            learningPath.innerHTML = `
+                <h3>📚 Recommended Learning Path for "${data.topic}"</h3>
+                <p>${data.learning_path}</p>
+            `;
+
+            // Display stats
+            const statsBar = document.getElementById('statsBar');
+            statsBar.innerHTML = `
+                <div class="stat-item">
+                    <div class="stat-value">${data.total_resources}</div>
+                    <div class="stat-label">Total Resources</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${data.udemy?.length || 0}</div>
+                    <div class="stat-label">Udemy Courses</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${data.coursera?.length || 0}</div>
+                    <div class="stat-label">Coursera Courses</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${data.linkedin_learning?.length || 0}</div>
+                    <div class="stat-label">LinkedIn Learning</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${data.government_resources?.length || 0}</div>
+                    <div class="stat-label">Gov Resources</div>
+                </div>
+            `;
+
+            // Display platforms
+            const platformsContainer = document.getElementById('platformsContainer');
+            platformsContainer.innerHTML = '';
+
+            // Udemy
+            if (data.udemy && data.udemy.length > 0) {
+                platformsContainer.innerHTML += createPlatformSection(
+                    '🎯 Udemy Courses',
+                    data.udemy,
+                    'udemy'
+                );
+            }
+
+            // LinkedIn Learning
+            if (data.linkedin_learning && data.linkedin_learning.length > 0) {
+                platformsContainer.innerHTML += createPlatformSection(
+                    '💼 LinkedIn Learning',
+                    data.linkedin_learning,
+                    'linkedin'
+                );
+            }
+
+            // Coursera
+            if (data.coursera && data.coursera.length > 0) {
+                platformsContainer.innerHTML += createPlatformSection(
+                    '🎓 Coursera',
+                    data.coursera,
+                    'coursera'
+                );
+            }
+
+            // Government Resources
+            if (data.government_resources && data.government_resources.length > 0) {
+                platformsContainer.innerHTML += createPlatformSection(
+                    '🏛️ Government Resources',
+                    data.government_resources,
+                    'government'
+                );
+            }
+
+            // Other Platforms
+            if (data.other_platforms && data.other_platforms.length > 0) {
+                platformsContainer.innerHTML += createPlatformSection(
+                    '🌐 Other Platforms',
+                    data.other_platforms,
+                    'other'
+                );
+            }
+        }
+
+        function createPlatformSection(title, resources, type) {
+            const icon = title.split(' ')[0];
+            const platformTitle = title.substring(title.indexOf(' ') + 1);
+            
+            return `
+                <div class="platform-section">
+                    <div class="platform-header">
+                        <span class="platform-icon">${icon}</span>
+                        <h3>${platformTitle}</h3>
+                        <span class="resource-count">${resources.length} Resources</span>
+                    </div>
+                    <div class="resource-grid">
+                        ${resources.map(resource => createResourceCard(resource, type)).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function createResourceCard(resource, type) {
+            let metaBadges = '';
+            
+            if (resource.level) {
+                metaBadges += `<span class="meta-badge">📊 ${resource.level}</span>`;
+            }
+            if (resource.duration) {
+                metaBadges += `<span class="meta-badge">⏱️ ${resource.duration}</span>`;
+            }
+            if (resource.price) {
+                metaBadges += `<span class="meta-badge">💰 ${resource.price}</span>`;
+            }
+            if (resource.type) {
+                metaBadges += `<span class="meta-badge">📌 ${resource.type}</span>`;
+            }
+
+            let providerInfo = '';
+            if (resource.provider) {
+                providerInfo = `<div class="provider-name">By ${resource.provider}</div>`;
+            }
+            if (resource.organization) {
+                providerInfo = `<div class="provider-name">${resource.organization}</div>`;
+            }
+            if (resource.platform) {
+                providerInfo = `<div class="provider-name">${resource.platform}</div>`;
+            }
+
+            return `
+                <div class="resource-card">
+                    <h4>${resource.title}</h4>
+                    ${providerInfo}
+                    <p>${resource.description}</p>
+                    ${metaBadges ? `<div class="resource-meta">${metaBadges}</div>` : ''}
+                    <a href="${resource.url}" target="_blank" class="resource-link">
+                        🔗 View Course
+                    </a>
+                </div>
+            `;
+        }
+
+        // Allow Enter key
+        document.getElementById('topicInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                searchResources();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -5,7 +5,6 @@ from datetime import datetime, timedelta
 from motor.motor_asyncio import AsyncIOMotorClient
 
 from ..services import llm_client
-from ..services.transcript_service import get_transcript
 
 router = APIRouter()
 
@@ -84,7 +83,8 @@ async def get_summary(
     videoId: str = Path(..., description="The ID of the YouTube video")
 ):
     """
-    Get or generate a summary for a YouTube video.
+    Get or generate a summary for a YouTube video using Gemini AI.
+    Directly analyzes the video without requiring transcripts.
     """
     # Check cache
     cached = await get_cached_summary(videoId)
@@ -92,45 +92,20 @@ async def get_summary(
         print(f"Cache hit for summary: {videoId}")
         return cached
     
-    # Fetch transcript directly (no HTTP call)
+    # Generate summary using Gemini video analysis
+    print(f"Generating summary for {videoId} using Gemini video analysis")
     try:
-        transcript_data = await get_transcript(videoId)
-    except HTTPException:
-        raise
+        video_url = f"https://www.youtube.com/watch?v={videoId}"
+        video_summary = await llm_client.analyze_video_url(video_url)
+        video_summary["generatedAt"] = datetime.utcnow().isoformat()
+        video_summary["method"] = "gemini_video_analysis"
+        
+        # Save to cache
+        await save_summary(videoId, video_summary)
+        
+        return video_summary
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to fetch transcript: {str(e)}")
-    
-    transcript_text = transcript_data.get("transcript_text", "")
-    
-    if not transcript_text:
-        raise HTTPException(status_code=404, detail="No transcript available for summarization")
-    
-    # Chunk transcript
-    chunks = chunk_transcript(transcript_text)
-    
-    # Summarize each chunk
-    chunk_summaries = []
-    for chunk in chunks:
-        try:
-            chunk_summary = await llm_client.summarize_chunk(chunk)
-            chunk_summaries.append(chunk_summary)
-        except Exception as e:
-            print(f"Error summarizing chunk: {e}")
-            # Continue with other chunks
-    
-    if not chunk_summaries:
-        raise HTTPException(status_code=500, detail="Failed to generate any summaries")
-    
-    # Merge summaries
-    try:
-        final_summary = await llm_client.merge_summaries(chunk_summaries)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to merge summaries: {str(e)}")
-    
-    # Add metadata
-    final_summary["generatedAt"] = datetime.utcnow().isoformat()
-    
-    # Save to cache
-    await save_summary(videoId, final_summary)
-    
-    return final_summary
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Failed to generate video summary: {str(e)}"
+        )

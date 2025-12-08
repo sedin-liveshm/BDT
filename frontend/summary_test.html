@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Summary Fallback Test - YtLearner</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+
+        .test-section {
+            margin-bottom: 30px;
+        }
+
+        .test-section h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+
+        .test-section p {
+            color: #666;
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .result {
+            margin-top: 20px;
+            display: none;
+        }
+
+        .result.show {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .method-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .method-badge.transcript {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .method-badge.video {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .summary-text {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            line-height: 1.8;
+            color: #333;
+        }
+
+        .takeaways {
+            margin-top: 20px;
+        }
+
+        .takeaways h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+        }
+
+        .takeaway-item {
+            background: #f0f4ff;
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .focus {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-style: italic;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border-left: 4px solid #f5c6cb;
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 2px solid #f0f0f0;
+        }
+
+        .metric {
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .metric-label {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .sample-videos {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .sample-videos h4 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1rem;
+        }
+
+        .sample-video {
+            background: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .sample-video:hover {
+            background-color: #e0e7ff;
+        }
+
+        .sample-video strong {
+            color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📺 Summary Fallback Test</h1>
+            <p>Test transcript-based and video analysis fallback summaries</p>
+        </div>
+
+        <div class="card">
+            <div class="test-section">
+                <h2>🧪 Test Summary Generation</h2>
+                <p>Enter a YouTube video ID to test summary generation. The system will try to use the transcript first, and automatically fall back to video analysis if the transcript is unavailable.</p>
+                
+                <div class="sample-videos">
+                    <h4>📋 Sample Videos to Test:</h4>
+                    <div class="sample-video" onclick="testVideo('Ks-_Mh1QhMc')">
+                        <strong>Ks-_Mh1QhMc</strong> - Video with transcript (should use transcript method)
+                    </div>
+                    <div class="sample-video" onclick="testVideo('dQw4w9WgXcQ')">
+                        <strong>dQw4w9WgXcQ</strong> - Test video (may have transcript)
+                    </div>
+                    <div class="sample-video" onclick="testVideo('jNQXAC9IVRw')">
+                        <strong>jNQXAC9IVRw</strong> - Another test video
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <input 
+                        type="text" 
+                        id="videoId" 
+                        placeholder="Enter YouTube Video ID (e.g., Ks-_Mh1QhMc)"
+                        value="Ks-_Mh1QhMc"
+                    >
+                    <button id="testBtn" onclick="testSummary()">🚀 Get Summary</button>
+                </div>
+            </div>
+
+            <div id="loading" class="loading">
+                <div class="spinner"></div>
+                <p>Generating summary... This may take 10-30 seconds</p>
+            </div>
+
+            <div id="result" class="result"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://127.0.0.1:8000/api';
+        let startTime;
+
+        function testVideo(videoId) {
+            document.getElementById('videoId').value = videoId;
+            testSummary();
+        }
+
+        async function testSummary() {
+            const videoId = document.getElementById('videoId').value.trim();
+            
+            if (!videoId) {
+                alert('Please enter a video ID');
+                return;
+            }
+
+            const loading = document.getElementById('loading');
+            const result = document.getElementById('result');
+            const testBtn = document.getElementById('testBtn');
+            
+            // Reset UI
+            loading.classList.add('active');
+            result.classList.remove('show');
+            result.innerHTML = '';
+            testBtn.disabled = true;
+            
+            startTime = Date.now();
+            
+            try {
+                const response = await fetch(`${API_BASE}/video/${videoId}/summary`);
+                const duration = ((Date.now() - startTime) / 1000).toFixed(2);
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Failed to fetch summary');
+                }
+                
+                const data = await response.json();
+                displayResult(data, duration, videoId);
+                
+            } catch (error) {
+                const duration = ((Date.now() - startTime) / 1000).toFixed(2);
+                displayError(error.message, duration);
+            } finally {
+                loading.classList.remove('active');
+                testBtn.disabled = false;
+            }
+        }
+
+        function displayResult(data, duration, videoId) {
+            const result = document.getElementById('result');
+            
+            const method = data.method || (data.source === 'video_analysis' ? 'video_analysis' : 'transcript_based');
+            const isTranscript = method.includes('transcript') || !data.source || data.source !== 'video_analysis';
+            
+            const methodBadge = isTranscript 
+                ? '<span class="method-badge transcript">📝 Transcript-Based</span>'
+                : '<span class="method-badge video">🎥 Video Analysis Fallback</span>';
+            
+            let html = `
+                <div class="result-header">
+                    <h3>✅ Summary Generated</h3>
+                    ${methodBadge}
+                </div>
+                
+                <div class="summary-text">
+                    <strong>Summary:</strong><br>
+                    ${data.summary || 'No summary available'}
+                </div>
+            `;
+            
+            if (data.takeaways && data.takeaways.length > 0) {
+                html += `
+                    <div class="takeaways">
+                        <h3>💡 Key Takeaways</h3>
+                        ${data.takeaways.map(takeaway => `
+                            <div class="takeaway-item">${takeaway}</div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+            
+            if (data.focus) {
+                html += `
+                    <div class="focus">
+                        <strong>🎯 Focus:</strong> ${data.focus}
+                    </div>
+                `;
+            }
+            
+            if (data.topics && data.topics.length > 0) {
+                html += `
+                    <div class="takeaways">
+                        <h3>📚 Topics Covered</h3>
+                        ${data.topics.map(topic => `
+                            <div class="takeaway-item">${topic}</div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+            
+            html += `
+                <div class="metrics">
+                    <div class="metric">
+                        <div class="metric-value">${duration}s</div>
+                        <div class="metric-label">Duration</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value">${videoId}</div>
+                        <div class="metric-label">Video ID</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value">${data.takeaways?.length || 0}</div>
+                        <div class="metric-label">Takeaways</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value">${isTranscript ? 'Transcript' : 'Video'}</div>
+                        <div class="metric-label">Method</div>
+                    </div>
+                </div>
+            `;
+            
+            result.innerHTML = html;
+            result.classList.add('show');
+        }
+
+        function displayError(message, duration) {
+            const result = document.getElementById('result');
+            
+            result.innerHTML = `
+                <div class="error">
+                    <strong>❌ Error:</strong><br>
+                    ${message}
+                </div>
+                <div class="metrics">
+                    <div class="metric">
+                        <div class="metric-value">${duration}s</div>
+                        <div class="metric-label">Duration</div>
+                    </div>
+                </div>
+            `;
+            
+            result.classList.add('show');
+        }
+
+        // Allow Enter key to trigger test
+        document.getElementById('videoId').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                testSummary();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -76,6 +76,8 @@ async def get_video_metadata(video_id: str) -> Dict[str, Any]:
             "likeCount": statistics.get("likeCount", "0"),
             "commentCount": statistics.get("commentCount", "0")
         },
+        "youtubeUrl": f"https://www.youtube.com/watch?v={video_id}",
+        "embedUrl": f"https://www.youtube.com/embed/{video_id}",
         "metadataFetchedAt": datetime.utcnow().isoformat()
     }
 
